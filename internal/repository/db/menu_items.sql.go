@@ -68,10 +68,17 @@ const listMenuItemsByVendor = `-- name: ListMenuItemsByVendor :many
 SELECT id, vendor_id, name, price, stock_qty, is_available FROM menu_items
 WHERE vendor_id = $1
 ORDER BY name ASC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) ListMenuItemsByVendor(ctx context.Context, vendorID pgtype.UUID) ([]MenuItem, error) {
-	rows, err := q.db.Query(ctx, listMenuItemsByVendor, vendorID)
+type ListMenuItemsByVendorParams struct {
+	VendorID pgtype.UUID `json:"vendor_id"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
+}
+
+func (q *Queries) ListMenuItemsByVendor(ctx context.Context, arg ListMenuItemsByVendorParams) ([]MenuItem, error) {
+	rows, err := q.db.Query(ctx, listMenuItemsByVendor, arg.VendorID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +144,32 @@ type UpdateMenuItemStockParams struct {
 
 func (q *Queries) UpdateMenuItemStock(ctx context.Context, arg UpdateMenuItemStockParams) (MenuItem, error) {
 	row := q.db.QueryRow(ctx, updateMenuItemStock, arg.ID, arg.StockQty)
+	var i MenuItem
+	err := row.Scan(
+		&i.ID,
+		&i.VendorID,
+		&i.Name,
+		&i.Price,
+		&i.StockQty,
+		&i.IsAvailable,
+	)
+	return i, err
+}
+
+const decrementMenuItemStock = `-- name: DecrementMenuItemStock :one
+UPDATE menu_items
+SET stock_qty = stock_qty - $2
+WHERE id = $1 AND stock_qty >= $2
+RETURNING id, vendor_id, name, price, stock_qty, is_available
+`
+
+type DecrementMenuItemStockParams struct {
+	ID       pgtype.UUID `json:"id"`
+	StockQty int32       `json:"stock_qty"`
+}
+
+func (q *Queries) DecrementMenuItemStock(ctx context.Context, arg DecrementMenuItemStockParams) (MenuItem, error) {
+	row := q.db.QueryRow(ctx, decrementMenuItemStock, arg.ID, arg.StockQty)
 	var i MenuItem
 	err := row.Scan(
 		&i.ID,

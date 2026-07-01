@@ -24,7 +24,7 @@ func NewService(store repository.Store, cacheService cache.Cache, jwtSecret stri
 		User:   NewUserService(store),
 		Vendor: NewVendorService(store, cacheService),
 		Menu:   NewMenuService(store, cacheService),
-		Order:  NewOrderService(store),
+		Order:  NewOrderService(store, cacheService),
 	}
 }
 
@@ -51,13 +51,18 @@ func NewUserService(store repository.Store) UserService {
 
 // OrderService interface definitions
 type OrderService interface {
-	// Order management logic will go here in Phase 3/4
+	CreateOrder(ctx context.Context, req CreateOrderRequest) (db.Order, error)
+	GetOrder(ctx context.Context, orderID string) (db.Order, error)
+	ListOrdersByCustomer(ctx context.Context, customerID string) ([]db.Order, error)
+	ListOrdersByVendor(ctx context.Context, vendorID string) ([]db.Order, error)
+	UpdateOrderStatus(ctx context.Context, orderID string, status string) (db.Order, error)
 }
 
 type orderService struct {
 	store repository.Store
+	cache cache.Cache
 }
 
-func NewOrderService(store repository.Store) OrderService {
-	return &orderService{store: store}
+func NewOrderService(store repository.Store, cacheService cache.Cache) OrderService {
+	return &orderService{store: store, cache: cacheService}
 }

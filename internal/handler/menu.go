@@ -77,7 +77,18 @@ func (h *Handler) createMenuItem(c *gin.Context) {
 func (h *Handler) listMenuItems(c *gin.Context) {
 	vendorID := c.Param("vendor_id")
 	
-	items, err := h.services.Menu.ListMenuItemsByVendor(c.Request.Context(), vendorID)
+	limit := int32(10) // default limit
+	page := int32(1)   // default page
+	
+	if l := util.ParseQueryInt32(c.Query("limit"), 10); l > 0 && l <= 100 {
+		limit = l
+	}
+	if p := util.ParseQueryInt32(c.Query("page"), 1); p > 0 {
+		page = p
+	}
+	offset := (page - 1) * limit
+	
+	items, err := h.services.Menu.ListMenuItemsByVendor(c.Request.Context(), vendorID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

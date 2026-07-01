@@ -14,7 +14,7 @@ import (
 type MenuService interface {
 	CreateMenuItem(ctx context.Context, arg db.CreateMenuItemParams) (db.MenuItem, error)
 	GetMenuItemByID(ctx context.Context, id string) (db.MenuItem, error)
-	ListMenuItemsByVendor(ctx context.Context, vendorID string) ([]db.MenuItem, error)
+	ListMenuItemsByVendor(ctx context.Context, vendorID string, limit, offset int32) ([]db.MenuItem, error)
 	UpdateMenuItemStock(ctx context.Context, id string, stockQty int32) (db.MenuItem, error)
 	UpdateMenuItemPrice(ctx context.Context, id string, price pgtype.Numeric) (db.MenuItem, error)
 }
@@ -52,7 +52,7 @@ func (s *menuService) CreateMenuItem(ctx context.Context, arg db.CreateMenuItemP
 	// Alternatively, we invalidate using the string representation passed elsewhere or parsed.
 	vendorIDBytes := arg.VendorID.Bytes
 	vID := fmt.Sprintf("%x-%x-%x-%x-%x", vendorIDBytes[0:4], vendorIDBytes[4:6], vendorIDBytes[6:8], vendorIDBytes[8:10], vendorIDBytes[10:16])
-	_ = s.cache.Delete(ctx, fmt.Sprintf("vendors:%s:menu", vID))
+	_ = s.cache.DeleteByPrefix(ctx, fmt.Sprintf("vendors:%s:menu", vID))
 
 	return item, nil
 }
@@ -65,8 +65,8 @@ func (s *menuService) GetMenuItemByID(ctx context.Context, id string) (db.MenuIt
 	return s.store.GetMenuItemByID(ctx, uuid)
 }
 
-func (s *menuService) ListMenuItemsByVendor(ctx context.Context, vendorID string) ([]db.MenuItem, error) {
-	cacheKey := fmt.Sprintf("vendors:%s:menu", vendorID)
+func (s *menuService) ListMenuItemsByVendor(ctx context.Context, vendorID string, limit, offset int32) ([]db.MenuItem, error) {
+	cacheKey := fmt.Sprintf("vendors:%s:menu:limit:%d:offset:%d", vendorID, limit, offset)
 	var items []db.MenuItem
 
 	// Try cache
@@ -79,7 +79,13 @@ func (s *menuService) ListMenuItemsByVendor(ctx context.Context, vendorID string
 		return nil, err
 	}
 
-	items, err := s.store.ListMenuItemsByVendor(ctx, uuid)
+	arg := db.ListMenuItemsByVendorParams{
+		VendorID: uuid,
+		Limit:    limit,
+		Offset:   offset,
+	}
+
+	items, err := s.store.ListMenuItemsByVendor(ctx, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +114,7 @@ func (s *menuService) UpdateMenuItemStock(ctx context.Context, id string, stockQ
 	// Invalidate the vendor's menu cache
 	vendorIDBytes := item.VendorID.Bytes
 	vID := fmt.Sprintf("%x-%x-%x-%x-%x", vendorIDBytes[0:4], vendorIDBytes[4:6], vendorIDBytes[6:8], vendorIDBytes[8:10], vendorIDBytes[10:16])
-	_ = s.cache.Delete(ctx, fmt.Sprintf("vendors:%s:menu", vID))
+	_ = s.cache.DeleteByPrefix(ctx, fmt.Sprintf("vendors:%s:menu", vID))
 
 	return item, nil
 }
@@ -132,7 +138,7 @@ func (s *menuService) UpdateMenuItemPrice(ctx context.Context, id string, price 
 	// Invalidate the vendor's menu cache
 	vendorIDBytes := item.VendorID.Bytes
 	vID := fmt.Sprintf("%x-%x-%x-%x-%x", vendorIDBytes[0:4], vendorIDBytes[4:6], vendorIDBytes[6:8], vendorIDBytes[8:10], vendorIDBytes[10:16])
-	_ = s.cache.Delete(ctx, fmt.Sprintf("vendors:%s:menu", vID))
+	_ = s.cache.DeleteByPrefix(ctx, fmt.Sprintf("vendors:%s:menu", vID))
 
 	return item, nil
 }

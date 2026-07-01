@@ -29,6 +29,9 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 	// Rate limiter for Auth endpoints (e.g., 5 requests per second limit, burst of 10)
 	authRateLimiter := middleware.NewRateLimiter(5.0, 10.0)
 
+	// Rate limiter for Orders (token bucket: 2 requests per second, capacity 5)
+	orderRateLimiter := middleware.NewRateLimiter(2.0, 5)
+
 	// Health check
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -75,8 +78,19 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 			// Orders routes
 			orders := authenticated.Group("/orders")
 			{
-				orders.POST("", h.createOrder)
+				orders.GET("", h.listOrders)
 				orders.GET("/:id", h.getOrder)
+				orders.GET("/:id/track", h.trackOrderWS)
+
+				// Rate limited order placement
+				orders.POST("", middleware.RateLimitOrder(orderRateLimiter), h.createOrder)
+
+				// Vendor only order mutations
+				vendorOnlyOrders := orders.Group("")
+				vendorOnlyOrders.Use(middleware.RequireRole("vendor", "admin"))
+				{
+					vendorOnlyOrders.PATCH("/:id/status", h.updateOrderStatus)
+				}
 			}
 		}
 	}
@@ -84,11 +98,4 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 	return router
 }
 
-// Temporary order handlers (will be fully implemented in later phases)
-func (h *Handler) createOrder(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "create order endpoint"})
-}
-
-func (h *Handler) getOrder(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "get order endpoint"})
 }

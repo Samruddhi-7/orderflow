@@ -13,6 +13,8 @@ type Cache interface {
 	Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error
 	Get(ctx context.Context, key string, dest interface{}) error
 	Delete(ctx context.Context, keys ...string) error
+	DeleteByPrefix(ctx context.Context, prefix string) error
+	SetNX(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error)
 }
 
 type redisCache struct {
@@ -58,4 +60,27 @@ func (c *redisCache) Delete(ctx context.Context, keys ...string) error {
 		return nil
 	}
 	return c.client.Del(ctx, keys...).Err()
+}
+
+func (c *redisCache) DeleteByPrefix(ctx context.Context, prefix string) error {
+	iter := c.client.Scan(ctx, 0, prefix+"*", 0).Iterator()
+	var keys []string
+	for iter.Next(ctx) {
+		keys = append(keys, iter.Val())
+	}
+	if err := iter.Err(); err != nil {
+		return err
+	}
+	if len(keys) > 0 {
+		return c.client.Del(ctx, keys...).Err()
+	}
+	return nil
+}
+
+func (c *redisCache) SetNX(ctx context.Context, key string, value interface{}, ttl time.Duration) (bool, error) {
+	bytes, err := json.Marshal(value)
+	if err != nil {
+		return false, err
+	}
+	return c.client.SetNX(ctx, key, bytes, ttl).Result()
 }

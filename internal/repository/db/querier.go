@@ -23,9 +23,10 @@ type Querier interface {
 	
 	CreateMenuItem(ctx context.Context, arg CreateMenuItemParams) (MenuItem, error)
 	GetMenuItemByID(ctx context.Context, id pgtype.UUID) (MenuItem, error)
-	ListMenuItemsByVendor(ctx context.Context, vendorID pgtype.UUID) ([]MenuItem, error)
+	ListMenuItemsByVendor(ctx context.Context, arg ListMenuItemsByVendorParams) ([]MenuItem, error)
 	UpdateMenuItemPrice(ctx context.Context, arg UpdateMenuItemPriceParams) (MenuItem, error)
 	UpdateMenuItemStock(ctx context.Context, arg UpdateMenuItemStockParams) (MenuItem, error)
+	DecrementMenuItemStock(ctx context.Context, arg DecrementMenuItemStockParams) (MenuItem, error)
 	
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	GetOrderByID(ctx context.Context, id pgtype.UUID) (Order, error)
