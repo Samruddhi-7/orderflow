@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/Samruddhi-7/orderflow/internal/repository/db"
 	"github.com/Samruddhi-7/orderflow/internal/service"
 )
 

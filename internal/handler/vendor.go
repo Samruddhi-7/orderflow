@@ -27,7 +27,7 @@ func (h *Handler) createVendor(c *gin.Context) {
 	
 	// Create UUID for the user id from token
 	var userID pgtype.UUID
-	if err := userID.Scan(payload.UserID.String()); err != nil {
+	if err := userID.Scan(payload.UserID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user id"})
 		return
 	}
@@ -97,7 +97,7 @@ func (h *Handler) updateVendorStatus(c *gin.Context) {
 		vendorUserID = util.UUIDString(vendorIDBytes)
 	}
 
-	if vendorUserID != payload.UserID.String() && payload.Role != "admin" {
+	if vendorUserID != payload.UserID && payload.Role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only update your own vendor profile"})
 		return
 	}
