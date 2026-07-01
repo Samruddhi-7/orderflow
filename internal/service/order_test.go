@@ -71,11 +71,11 @@ func TestOrderService_Integration(t *testing.T) {
 	customerUUID.Scan(uuid.New().String())
 	vendorUUID.Scan(uuid.New().String())
 
-	_, _ = queries.CreateUser(ctx, db.CreateUserParams{ID: customerUUID, Email: "c@c.com", PasswordHash: "h", Role: "customer"})
-	_, _ = queries.CreateUser(ctx, db.CreateUserParams{ID: vendorUUID, Email: "v@v.com", PasswordHash: "h", Role: "vendor"})
+	_, _ = queries.CreateUser(ctx, db.CreateUserParams{Email: "c@c.com", PasswordHash: "h", Role: "customer"})
+	_, _ = queries.CreateUser(ctx, db.CreateUserParams{Email: "v@v.com", PasswordHash: "h", Role: "vendor"})
 	
 	_, _ = queries.CreateVendor(ctx, db.CreateVendorParams{
-		UserID: vendorUUID, Name: "V", Description: "D", Status: "active",
+		UserID: vendorUUID, Name: "V",
 	})
 
 	var price pgtype.Numeric

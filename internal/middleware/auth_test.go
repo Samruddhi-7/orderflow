@@ -48,7 +48,7 @@ func TestRequireRole(t *testing.T) {
 			router.Use(func(c *gin.Context) {
 				userID, _ := uuid.NewRandom()
 				claims := &util.UserClaims{
-					UserID: userID,
+					UserID: userID.String(),
 					Role:   tc.userRole,
 				}
 				c.Set(middleware.AuthorizationPayloadKey, claims)

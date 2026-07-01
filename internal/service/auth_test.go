@@ -29,6 +29,10 @@ func newMockStore() *mockStore {
 	}
 }
 
+func (m *mockStore) ExecTx(ctx context.Context, fn func(*db.Queries) error) error {
+	return nil
+}
+
 func (m *mockStore) CreateUser(ctx context.Context, arg db.CreateUserParams) (db.User, error) {
 	var id pgtype.UUID
 	id.Valid = true

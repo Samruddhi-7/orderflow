@@ -46,8 +46,8 @@ func TestOrderConcurrency(t *testing.T) {
 	_, err = queries.CreateVendor(ctx, db.CreateVendorParams{
 		UserID:      pgVendorID, // just mock for now
 		Name:        "Concurrency Test Vendor",
-		Description: "Vendor for testing",
-		Status:      "active",
+
+
 	})
 	if err != nil {
 		t.Fatalf("failed to create vendor: %v", err)
