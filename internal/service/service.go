@@ -15,6 +15,7 @@ type Service struct {
 	Vendor VendorService
 	Menu   MenuService
 	Order  OrderService
+	Admin  AdminService
 }
 
 // NewService instantiates the business services
@@ -25,6 +26,7 @@ func NewService(store repository.Store, cacheService cache.Cache, jwtSecret stri
 		Vendor: NewVendorService(store, cacheService),
 		Menu:   NewMenuService(store, cacheService),
 		Order:  NewOrderService(store, cacheService),
+		Admin:  NewAdminService(store),
 	}
 }
 

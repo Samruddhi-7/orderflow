@@ -92,6 +92,14 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 					vendorOnlyOrders.PATCH("/:id/status", h.updateOrderStatus)
 				}
 			}
+
+			// Admin routes
+			admin := authenticated.Group("/admin")
+			admin.Use(middleware.RequireRole("admin"))
+			{
+				admin.GET("/analytics", h.getPlatformAnalytics)
+				admin.GET("/vendors", h.getAdminVendors)
+			}
 		}
 	}
 

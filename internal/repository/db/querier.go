@@ -44,6 +44,8 @@ type Querier interface {
 	RevokeRefreshToken(ctx context.Context, tokenHash string) error
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
 	RevokeAllUserTokens(ctx context.Context, userID pgtype.UUID) error
+	
+	GetPlatformAnalytics(ctx context.Context) (GetPlatformAnalyticsRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
