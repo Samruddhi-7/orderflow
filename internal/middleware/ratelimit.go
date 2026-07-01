@@ -36,22 +36,22 @@ func (tb *TokenBucket) Allow() bool {
 	return false
 }
 
-type RateLimiter struct {
+type OrderRateLimiter struct {
 	buckets map[string]*TokenBucket
 	mu      sync.Mutex
 	rate    float64
 	cap     int
 }
 
-func NewRateLimiter(r float64, c int) *RateLimiter {
-	return &RateLimiter{
+func NewOrderRateLimiter(r float64, c int) *OrderRateLimiter {
+	return &OrderRateLimiter{
 		buckets: make(map[string]*TokenBucket),
 		rate:    r,
 		cap:     c,
 	}
 }
 
-func (rl *RateLimiter) getBucket(key string) *TokenBucket {
+func (rl *OrderRateLimiter) getBucket(key string) *TokenBucket {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -69,7 +69,7 @@ func (rl *RateLimiter) getBucket(key string) *TokenBucket {
 	return bucket
 }
 
-func RateLimitOrder(rl *RateLimiter) gin.HandlerFunc {
+func RateLimitOrder(rl *OrderRateLimiter) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		payload, exists := c.Get(AuthorizationPayloadKey)
 		if !exists {

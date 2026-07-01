@@ -38,14 +38,6 @@ func (s *menuService) CreateMenuItem(ctx context.Context, arg db.CreateMenuItemP
 	}
 
 	// Invalidate the vendor's menu cache
-	var vendorIDStr string
-	if vendorID, err := arg.VendorID.Value(); err == nil && vendorID != nil {
-		if idStr, ok := vendorID.(string); ok {
-			vendorIDStr = idStr
-		} else if idBytes, ok := vendorID.([16]byte); ok {
-			vendorIDStr = fmt.Sprintf("%x-%x-%x-%x-%x", idBytes[0:4], idBytes[4:6], idBytes[6:8], idBytes[8:10], idBytes[10:16])
-		}
-	}
 	
 	// Format of uuid string representation in go pgx is usually just hex, or we can format it properly.
 	// Since we know pgtype.UUID can be formatted, let's just use the string value if we can.

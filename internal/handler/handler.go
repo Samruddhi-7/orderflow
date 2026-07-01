@@ -30,7 +30,7 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 	authRateLimiter := middleware.NewRateLimiter(5.0, 10.0)
 
 	// Rate limiter for Orders (token bucket: 2 requests per second, capacity 5)
-	orderRateLimiter := middleware.NewRateLimiter(2.0, 5)
+	orderRateLimiter := middleware.NewOrderRateLimiter(2.0, 5)
 
 	// Health check
 	router.GET("/health", func(c *gin.Context) {
@@ -104,6 +104,4 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 	}
 
 	return router
-}
-
 }
