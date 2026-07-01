@@ -3,8 +3,6 @@ package util
 import (
 	"fmt"
 	"strconv"
-	
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // UUIDString formats a [16]byte UUID as a string
