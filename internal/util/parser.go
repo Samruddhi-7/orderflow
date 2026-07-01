@@ -7,9 +7,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// UUIDString formats a pgtype.UUID as a string
-func UUIDString(u pgtype.UUID) string {
-	return fmt.Sprintf("%x-%x-%x-%x-%x", u.Bytes[0:4], u.Bytes[4:6], u.Bytes[6:8], u.Bytes[8:10], u.Bytes[10:16])
+// UUIDString formats a [16]byte UUID as a string
+func UUIDString(bytes [16]byte) string {
+	return fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:16])
 }
 
 // ParseQueryInt32 parses a string to int32, returning a default value on failure.
