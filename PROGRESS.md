@@ -19,3 +19,17 @@ Phase 8 — Docker, CI/CD setup, README and finalized repository.
 ## Notes / decisions to remember
 - Chose sqlc over GORM for raw SQL control.
 - Chose Gin over Fiber.
+
+## Frontend Redesign
+- [ ] Phase A — Design tokens & component foundation
+- [ ] Phase B — Customer flow (browse, menu, cart, checkout)
+- [ ] Phase C — Order tracking (signature live timeline)
+- [ ] Phase D — Vendor dashboard (Kanban order management)
+- [ ] Phase E — Admin dashboard
+- [ ] Phase F — Responsive polish, accessibility, motion pass
+
+### Last completed
+None
+
+### Next up
+Phase A — Design tokens & component foundation
