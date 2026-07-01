@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: orderflow-postgres
+    environment:
+      POSTGRES_USER: orderflow_user
+      POSTGRES_PASSWORD: orderflow_password
+      POSTGRES_DB: orderflow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderflow_user -d orderflow_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: orderflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orderflow-api
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_SOURCE=postgresql://orderflow_user:orderflow_password@postgres:5432/orderflow_db?sslmode=disable
+      - REDIS_ADDR=redis:6379
+      - JWT_SECRET=super_secret_jwt_key_should_be_long_and_secure
+      - REFRESH_JWT_SECRET=super_secret_refresh_jwt_key_should_be_long_and_secure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
