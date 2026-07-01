@@ -40,7 +40,7 @@ func (h *Handler) createMenuItem(c *gin.Context) {
 		vendorUserID = util.UUIDString(vendorIDBytes)
 	}
 
-	if vendorUserID != payload.UserID.String() && payload.Role != "admin" {
+	if vendorUserID != payload.UserID && payload.Role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only add menu items to your own vendor profile"})
 		return
 	}
@@ -124,7 +124,7 @@ func (h *Handler) updateMenuStock(c *gin.Context) {
 		vendorUserID = util.UUIDString(vendorIDBytes)
 	}
 
-	if vendorUserID != payload.UserID.String() && payload.Role != "admin" {
+	if vendorUserID != payload.UserID && payload.Role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only update your own vendor's menu"})
 		return
 	}
@@ -182,7 +182,7 @@ func (h *Handler) updateMenuPrice(c *gin.Context) {
 		vendorUserID = util.UUIDString(vendorIDBytes)
 	}
 
-	if vendorUserID != payload.UserID.String() && payload.Role != "admin" {
+	if vendorUserID != payload.UserID && payload.Role != "admin" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only update your own vendor's menu"})
 		return
 	}

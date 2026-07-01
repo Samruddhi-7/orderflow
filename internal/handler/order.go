@@ -93,7 +93,7 @@ func (h *Handler) createOrder(c *gin.Context) {
 	}
 
 	orderReq := service.CreateOrderRequest{
-		CustomerID:     payload.UserID.String(),
+		CustomerID:     payload.UserID,
 		VendorID:       req.VendorID,
 		Items:          itemsMap,
 		IdempotencyKey: idempotencyKey,
@@ -131,7 +131,7 @@ func (h *Handler) getOrder(c *gin.Context) {
 		vendorIDStr = util.UUIDString(order.VendorID.Bytes)
 	}
 
-	if payload.Role == "customer" && payload.UserID.String() != customerIDStr {
+	if payload.Role == "customer" && payload.UserID != customerIDStr {
 		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -147,7 +147,7 @@ func (h *Handler) getOrder(c *gin.Context) {
 		if len(vendor.UserID.Bytes) == 16 {
 			ownerIDStr = util.UUIDString(vendor.UserID.Bytes)
 		}
-		if ownerIDStr != payload.UserID.String() {
+		if ownerIDStr != payload.UserID {
 			c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized"})
 			return
 		}
@@ -160,7 +160,7 @@ func (h *Handler) listOrders(c *gin.Context) {
 	payload := c.MustGet(middleware.AuthorizationPayloadKey).(*util.UserClaims)
 
 	if payload.Role == "customer" {
-		orders, err := h.services.Order.ListOrdersByCustomer(c.Request.Context(), payload.UserID.String())
+		orders, err := h.services.Order.ListOrdersByCustomer(c.Request.Context(), payload.UserID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -171,7 +171,7 @@ func (h *Handler) listOrders(c *gin.Context) {
 
 	if payload.Role == "vendor" {
 		// Vendor needs to list incoming orders for their vendor profile
-		vendor, err := h.services.Vendor.GetVendorByUserID(c.Request.Context(), payload.UserID.String())
+		vendor, err := h.services.Vendor.GetVendorByUserID(c.Request.Context(), payload.UserID)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "vendor profile not found"})
 			return
@@ -231,7 +231,7 @@ func (h *Handler) updateOrderStatus(c *gin.Context) {
 		ownerIDStr = util.UUIDString(vendor.UserID.Bytes)
 	}
 
-	if payload.Role != "admin" && ownerIDStr != payload.UserID.String() {
+	if payload.Role != "admin" && ownerIDStr != payload.UserID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "only the vendor can update their orders"})
 		return
 	}
