@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/go-redis/v9"
+	"github.com/Samruddhi-7/orderflow/internal/cache"
 	"github.com/Samruddhi-7/orderflow/internal/handler"
 	"github.com/Samruddhi-7/orderflow/internal/repository"
 	"github.com/Samruddhi-7/orderflow/internal/service"
@@ -58,20 +58,15 @@ func main() {
 	log.Println("Successfully connected to PostgreSQL database.")
 
 	// 3. Redis Connection
-	rdb := redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-	})
-	defer rdb.Close()
-
-	// Verify Redis connection
-	if err := rdb.Ping(ctx).Err(); err != nil {
+	cacheService, err := cache.NewRedisCache(redisAddr)
+	if err != nil {
 		log.Fatalf("Redis connection failed: %v\n", err)
 	}
 	log.Println("Successfully connected to Redis.")
 
 	// 4. Initialize Layers (Repository -> Service -> Handler)
 	store := repository.NewStore(dbPool)
-	services := service.NewService(store, jwtSecret)
+	services := service.NewService(store, cacheService, jwtSecret)
 	
 	tokenMaker := util.NewTokenMaker(jwtSecret)
 	handlers := handler.NewHandler(services, tokenMaker)

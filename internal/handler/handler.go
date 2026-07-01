@@ -52,13 +52,24 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 		authenticated := api.Group("/")
 		authenticated.Use(middleware.AuthMiddleware(h.tokenMaker))
 		{
-			// Example vendor-only route
-			vendorsOnly := authenticated.Group("/vendors")
-			vendorsOnly.Use(middleware.RequireRole("vendor", "admin"))
+			// Vendor routes
+			vendors := authenticated.Group("/vendors")
 			{
-				vendorsOnly.GET("/orders", func(c *gin.Context) {
-					c.JSON(http.StatusOK, gin.H{"message": "Welcome Vendor! This is your orders board."})
-				})
+				vendors.GET("", h.listVendors)
+				vendors.GET("/:id", h.getVendor)
+				vendors.GET("/:vendor_id/menu", h.listMenuItems)
+
+				// Vendor-only mutations
+				vendorOnly := vendors.Group("")
+				vendorOnly.Use(middleware.RequireRole("vendor", "admin"))
+				{
+					vendorOnly.POST("", h.createVendor)
+					vendorOnly.PATCH("/:id/status", h.updateVendorStatus)
+					
+					vendorOnly.POST("/:vendor_id/menu", h.createMenuItem)
+					vendorOnly.PATCH("/:vendor_id/menu/:item_id/price", h.updateMenuPrice)
+					vendorOnly.PATCH("/:vendor_id/menu/:item_id/stock", h.updateMenuStock)
+				}
 			}
 
 			// Orders routes

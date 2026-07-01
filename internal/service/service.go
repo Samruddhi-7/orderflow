@@ -3,23 +3,28 @@ package service
 import (
 	"context"
 
+	"github.com/Samruddhi-7/orderflow/internal/cache"
 	"github.com/Samruddhi-7/orderflow/internal/repository"
 	"github.com/Samruddhi-7/orderflow/internal/repository/db"
 )
 
 // Service container that groups all business logic services
 type Service struct {
-	Auth  AuthService
-	User  UserService
-	Order OrderService
+	Auth   AuthService
+	User   UserService
+	Vendor VendorService
+	Menu   MenuService
+	Order  OrderService
 }
 
 // NewService instantiates the business services
-func NewService(store repository.Store, jwtSecret string) *Service {
+func NewService(store repository.Store, cacheService cache.Cache, jwtSecret string) *Service {
 	return &Service{
-		Auth:  NewAuthService(store, jwtSecret),
-		User:  NewUserService(store),
-		Order: NewOrderService(store),
+		Auth:   NewAuthService(store, jwtSecret),
+		User:   NewUserService(store),
+		Vendor: NewVendorService(store, cacheService),
+		Menu:   NewMenuService(store, cacheService),
+		Order:  NewOrderService(store),
 	}
 }
 
