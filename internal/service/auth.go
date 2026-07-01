@@ -57,7 +57,7 @@ func uuidToString(src pgtype.UUID) string {
 	if !src.Valid {
 		return ""
 	}
-	u, err := uuid.FromBytes(src.Bytes)
+	u, err := uuid.FromBytes(src.Bytes[:])
 	if err != nil {
 		return ""
 	}

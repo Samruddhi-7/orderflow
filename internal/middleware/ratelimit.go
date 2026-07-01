@@ -78,7 +78,7 @@ func RateLimitOrder(rl *OrderRateLimiter) gin.HandlerFunc {
 		}
 
 		claims := payload.(*util.UserClaims)
-		userID := claims.UserID.String()
+		userID := claims.UserID
 
 		bucket := rl.getBucket(userID)
 		if !bucket.Allow() {
