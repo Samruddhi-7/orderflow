@@ -21,7 +21,7 @@ Phase 8 — Docker, CI/CD setup, README and finalized repository.
 - Chose Gin over Fiber.
 
 ## Frontend Redesign
-- [ ] Phase A — Design tokens & component foundation
+- [x] Phase A — Design tokens & component foundation
 - [ ] Phase B — Customer flow (browse, menu, cart, checkout)
 - [ ] Phase C — Order tracking (signature live timeline)
 - [ ] Phase D — Vendor dashboard (Kanban order management)
@@ -29,7 +29,7 @@ Phase 8 — Docker, CI/CD setup, README and finalized repository.
 - [ ] Phase F — Responsive polish, accessibility, motion pass
 
 ### Last completed
-None
+Phase A — Design tokens & component foundation
 
 ### Next up
-Phase A — Design tokens & component foundation
+Phase B — Customer flow (browse, menu, cart, checkout)
