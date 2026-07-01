@@ -13,6 +13,9 @@ RUN go mod download
 # Copy the rest of the application source code
 COPY . .
 
+# Generate go.sum based on source code imports
+RUN go mod tidy
+
 # Build the Go application binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
 
