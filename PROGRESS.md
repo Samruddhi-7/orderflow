@@ -8,13 +8,13 @@
 - [x] Phase 5 — Admin endpoints
 - [x] Phase 6 — Testing
 - [x] Phase 7 — Frontend
-- [ ] Phase 8 — Docker, CI/CD, README
+- [x] Phase 8 — Docker, CI/CD, README
 
 ## Last completed
-Phases 5, 6, and 7 — Admin endpoints, Unit & Integration Testing with testcontainers-go, and Next.js frontend with live WebSockets.
+Phase 8 — Docker, CI/CD setup, README and finalized repository.
 
 ## Next up
-Phase 8 — Docker, CI/CD, README
+🎉 All phases complete! The OrderFlow multi-vendor platform is successfully built.
 
 ## Notes / decisions to remember
 - Chose sqlc over GORM for raw SQL control.
