@@ -15,6 +15,7 @@ import (
 	"github.com/Samruddhi-7/orderflow/internal/handler"
 	"github.com/Samruddhi-7/orderflow/internal/repository"
 	"github.com/Samruddhi-7/orderflow/internal/service"
+	"github.com/Samruddhi-7/orderflow/internal/util"
 )
 
 func main() {
@@ -70,10 +71,17 @@ func main() {
 
 	// 4. Initialize Layers (Repository -> Service -> Handler)
 	store := repository.NewStore(dbPool)
-	services := service.NewService(store)
-	handlers := handler.NewHandler(services)
+	services := service.NewService(store, jwtSecret)
+	
+	tokenMaker := util.NewTokenMaker(jwtSecret)
+	handlers := handler.NewHandler(services, tokenMaker)
 
-	router := handlers.InitRoutes(jwtSecret)
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "http://localhost:3000"
+	}
+
+	router := handlers.InitRoutes(allowedOrigin)
 
 	// 5. Start Server with Graceful Shutdown support
 	srv := &http.Server{

@@ -3,37 +3,88 @@ package middleware
 import (
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/Samruddhi-7/orderflow/internal/util"
 )
 
-// AuthMiddleware is a placeholder for JWT authentication
-func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
+const (
+	AuthorizationHeaderKey = "authorization"
+	AuthorizationTypeBearer = "bearer"
+	AuthorizationPayloadKey = "authorization_payload"
+)
+
+// AuthMiddleware is Gin middleware to authenticate requests with JWT
+func AuthMiddleware(tokenMaker *util.TokenMaker) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+		authorizationHeader := c.GetHeader(AuthorizationHeaderKey)
+		if len(authorizationHeader) == 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header is not provided"})
 			return
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header must be Bearer token"})
+		fields := strings.Fields(authorizationHeader)
+		if len(fields) < 2 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization header format"})
 			return
 		}
 
-		tokenString := parts[1]
-		_ = tokenString // Will be parsed and verified in Phase 2
+		authorizationType := strings.ToLower(fields[0])
+		if authorizationType != AuthorizationTypeBearer {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unsupported authorization type"})
+			return
+		}
 
-		// For now, allow requests through to demonstrate scaffold
+		accessToken := fields[1]
+		payload, err := tokenMaker.VerifyToken(accessToken)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.Set(AuthorizationPayloadKey, payload)
 		c.Next()
 	}
 }
 
-// CORSMiddleware configures standard CORS settings
-func CORSMiddleware() gin.HandlerFunc {
+// RequireRole guards access based on user role claims in JWT
+func RequireRole(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		value, exists := c.Get(AuthorizationPayloadKey)
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "user is not authenticated"})
+			return
+		}
+
+		payload, ok := value.(*util.UserClaims)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to parse auth payload"})
+			return
+		}
+
+		roleAllowed := false
+		for _, role := range allowedRoles {
+			if payload.Role == role {
+				roleAllowed = true
+				break
+			}
+		}
+
+		if !roleAllowed {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden: insufficient permissions"})
+			return
+		}
+
+		c.Next()
+	}
+}
+
+// CORSMiddleware sets explicit CORS policies (no wildcards)
+func CORSMiddleware(allowedOrigin string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Idempotency-Key")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
@@ -43,6 +94,71 @@ func CORSMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		c.Next()
+	}
+}
+
+// ipLimiter holds the rate limiting token bucket for a single client IP
+type ipLimiter struct {
+	tokens     float64
+	lastRefill time.Time
+}
+
+// RateLimiter implements a thread-safe in-memory Token Bucket rate limiter
+type RateLimiter struct {
+	mu     sync.Mutex
+	ips    map[string]*ipLimiter
+	rate   float64 // Tokens refilled per second
+	burst  float64 // Maximum bucket capacity
+}
+
+// NewRateLimiter instantiates a new RateLimiter
+func NewRateLimiter(rate float64, burst float64) *RateLimiter {
+	return &RateLimiter{
+		ips:   make(map[string]*ipLimiter),
+		rate:  rate,
+		burst: burst,
+	}
+}
+
+// Allow checks if the request from the given IP is allowed under the rate limit
+func (rl *RateLimiter) Allow(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	lim, exists := rl.ips[ip]
+	now := time.Now()
+	if !exists {
+		rl.ips[ip] = &ipLimiter{
+			tokens:     rl.burst - 1.0,
+			lastRefill: now,
+		}
+		return true
+	}
+
+	elapsed := now.Sub(lim.lastRefill).Seconds()
+	lim.lastRefill = now
+	lim.tokens += elapsed * rl.rate
+	if lim.tokens > rl.burst {
+		lim.tokens = rl.burst
+	}
+
+	if lim.tokens >= 1.0 {
+		lim.tokens -= 1.0
+		return true
+	}
+
+	return false
+}
+
+// RateLimitMiddleware applies rate limiting based on client IP
+func RateLimitMiddleware(rl *RateLimiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ip := c.ClientIP()
+		if !rl.Allow(ip) {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "too many requests, please slow down"})
+			return
+		}
 		c.Next()
 	}
 }

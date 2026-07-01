@@ -75,3 +75,33 @@ func (q *Queries) RevokeRefreshToken(ctx context.Context, tokenHash string) erro
 	_, err := q.db.Exec(ctx, revokeRefreshToken, tokenHash)
 	return err
 }
+
+const getRefreshTokenByHash = `-- name: GetRefreshTokenByHash :one
+SELECT id, user_id, token_hash, expires_at, revoked FROM refresh_tokens
+WHERE token_hash = $1 LIMIT 1
+`
+
+func (q *Queries) GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, getRefreshTokenByHash, tokenHash)
+	var i RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.TokenHash,
+		&i.ExpiresAt,
+		&i.Revoked,
+	)
+	return i, err
+}
+
+const revokeAllUserTokens = `-- name: RevokeAllUserTokens :exec
+UPDATE refresh_tokens
+SET revoked = TRUE
+WHERE user_id = $1
+`
+
+func (q *Queries) RevokeAllUserTokens(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, revokeAllUserTokens, userID)
+	return err
+}
+

@@ -16,3 +16,13 @@ WHERE token_hash = $1;
 -- name: DeleteExpiredTokens :exec
 DELETE FROM refresh_tokens
 WHERE expires_at <= CURRENT_TIMESTAMP OR revoked = TRUE;
+
+-- name: GetRefreshTokenByHash :one
+SELECT * FROM refresh_tokens
+WHERE token_hash = $1 LIMIT 1;
+
+-- name: RevokeAllUserTokens :exec
+UPDATE refresh_tokens
+SET revoked = TRUE
+WHERE user_id = $1;
+
