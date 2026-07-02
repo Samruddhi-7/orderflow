@@ -10,7 +10,6 @@ import (
 	"github.com/Samruddhi-7/orderflow/internal/repository"
 	"github.com/Samruddhi-7/orderflow/internal/repository/db"
 	"github.com/Samruddhi-7/orderflow/internal/service"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
@@ -68,26 +67,31 @@ func TestOrderService_Integration(t *testing.T) {
 
 	// 1. Setup mock data
 	var customerUUID, vendorUUID pgtype.UUID
-	if err := customerUUID.Scan(uuid.New().String()); err != nil {
-		t.Fatalf("failed to scan customer UUID: %v", err)
-	}
-	if err := vendorUUID.Scan(uuid.New().String()); err != nil {
-		t.Fatalf("failed to scan vendor UUID: %v", err)
-	}
 
-	_, _ = queries.CreateUser(ctx, db.CreateUserParams{Email: "c@c.com", PasswordHash: "h", Role: "customer"})
-	_, _ = queries.CreateUser(ctx, db.CreateUserParams{Email: "v@v.com", PasswordHash: "h", Role: "vendor"})
-	
-	_, _ = queries.CreateVendor(ctx, db.CreateVendorParams{
+	userCustomer, err := queries.CreateUser(ctx, db.CreateUserParams{Email: "c@c.com", PasswordHash: "h", Role: "customer"})
+	if err != nil {
+		t.Fatalf("failed to create customer: %v", err)
+	}
+	userVendor, err := queries.CreateUser(ctx, db.CreateUserParams{Email: "v@v.com", PasswordHash: "h", Role: "vendor"})
+	if err != nil {
+		t.Fatalf("failed to create vendor user: %v", err)
+	}
+	customerUUID = userCustomer.ID
+	vendorUUID = userVendor.ID
+
+	vendor, err := queries.CreateVendor(ctx, db.CreateVendorParams{
 		UserID: vendorUUID, Name: "V",
 	})
+	if err != nil {
+		t.Fatalf("failed to create vendor: %v", err)
+	}
 
 	var price pgtype.Numeric
 	if err := price.Scan("10.50"); err != nil {
 		t.Fatalf("failed to scan price: %v", err)
 	}
 	menuItem, err := queries.CreateMenuItem(ctx, db.CreateMenuItemParams{
-		VendorID: vendorUUID, Name: "Burger", Price: price, StockQty: 50, IsAvailable: true,
+		VendorID: vendor.ID, Name: "Burger", Price: price, StockQty: 50, IsAvailable: true,
 	})
 	if err != nil {
 		t.Fatalf("failed to create item: %v", err)
@@ -167,8 +171,8 @@ func setupSchema(t *testing.T, pool *pgxpool.Pool) {
 		id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 		user_id UUID REFERENCES users(id) ON DELETE CASCADE,
 		name VARCHAR(255) NOT NULL,
-		description TEXT,
-		status VARCHAR(50) NOT NULL DEFAULT 'pending',
+		address VARCHAR(255) NOT NULL DEFAULT '',
+		is_open BOOLEAN NOT NULL DEFAULT false,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);

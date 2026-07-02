@@ -24,9 +24,13 @@ func TestOrderConcurrency(t *testing.T) {
 	connStr := "postgres://postgres:postgres@localhost:5432/orderflow?sslmode=disable"
 	pool, err := pgxpool.New(ctx, connStr)
 	if err != nil {
-		t.Skipf("Skipping integration test; could not connect to DB: %v", err)
+		t.Skipf("Skipping integration test; could not create pgxpool: %v", err)
 	}
 	defer pool.Close()
+
+	if err := pool.Ping(ctx); err != nil {
+		t.Skipf("Skipping integration test; could not connect to Postgres: %v", err)
+	}
 
 	redisCache, err := cache.NewRedisCache("localhost:6379")
 	if err != nil {
