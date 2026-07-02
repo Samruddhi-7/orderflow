@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { fetchApi } from "../../lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Badge } from "@/components/ui/Badge";
+import { Package, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 type Vendor = {
   id: string;
@@ -29,13 +35,9 @@ export default function VendorDashboard() {
   const [newItemStock, setNewItemStock] = useState("");
 
   useEffect(() => {
-    // 1. Get vendor profile for current user
     fetchApi("/vendors").then((vendors: Vendor[]) => {
-      // In a real app we'd fetch the specific vendor for the logged-in user.
-      // Assuming the first vendor belongs to the user for this demo if not strictly filtered by API
       if (vendors.length > 0) {
         setVendor(vendors[0]);
-        // 2. Get menu
         return fetchApi(`/vendors/${vendors[0].id}/menu`);
       }
       return [];
@@ -63,8 +65,9 @@ export default function VendorDashboard() {
       setNewItemName("");
       setNewItemPrice("");
       setNewItemStock("");
+      toast.success("Menu item created!");
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error(err.message || "Failed to create item");
     }
   };
 
@@ -76,76 +79,121 @@ export default function VendorDashboard() {
         body: JSON.stringify({ stock_qty: newStock, is_available: newStock > 0 })
       });
       setMenuItems(menuItems.map(m => m.id === itemId ? updated : m));
+      toast.success("Stock updated");
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error(err.message || "Failed to update stock");
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-ink/60 font-medium animate-pulse">Loading inventory...</div>
+      </div>
+    );
+  }
 
   if (!vendor) return (
-    <div className="p-6 bg-yellow-50 text-yellow-800 rounded">
-      You do not have a vendor profile yet. Please contact an admin.
-    </div>
+    <Card className="max-w-md mx-auto mt-12 border-status-warning/30 bg-status-warning/10">
+      <CardContent className="pt-6 text-center text-status-warning-foreground font-medium">
+        You do not have a vendor profile yet. Please contact an admin.
+      </CardContent>
+    </Card>
   );
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-2">Inventory Management</h2>
-      <p className="text-gray-600 mb-8">Manage your menu items and stock levels for {vendor.name}.</p>
-
-      <div className="bg-white p-6 border rounded shadow-sm mb-8">
-        <h3 className="text-lg font-semibold mb-4">Add Menu Item</h3>
-        <form onSubmit={handleCreateItem} className="flex gap-4 items-end">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input required value={newItemName} onChange={e => setNewItemName(e.target.value)} type="text" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-          </div>
-          <div className="w-32">
-            <label className="block text-sm font-medium text-gray-700">Price ($)</label>
-            <input required value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} type="number" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-          </div>
-          <div className="w-32">
-            <label className="block text-sm font-medium text-gray-700">Stock</label>
-            <input required value={newItemStock} onChange={e => setNewItemStock(e.target.value)} type="number" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2" />
-          </div>
-          <button type="submit" className="bg-blue-600 text-white font-medium py-2 px-4 rounded hover:bg-blue-700">
-            Add Item
-          </button>
-        </form>
+    <div className="space-y-8 pb-12">
+      <div className="space-y-2">
+        <h2 className="font-display text-4xl font-bold">Inventory Management</h2>
+        <p className="text-ink/80 text-lg">Manage menu items and stock for <span className="font-semibold text-ink">{vendor.name}</span>.</p>
       </div>
 
-      <div className="bg-white border rounded shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Qty</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quick Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {menuItems.map(item => (
-              <tr key={item.id}>
-                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{item.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">${item.price}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">{item.stock_qty}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {item.is_available ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
-                  <button onClick={() => handleUpdateStock(item.id, item.stock_qty + 5)} className="text-blue-600 hover:text-blue-900 bg-blue-50 px-2 py-1 rounded">+5 Stock</button>
-                  <button onClick={() => handleUpdateStock(item.id, 0)} className="text-red-600 hover:text-red-900 bg-red-50 px-2 py-1 rounded">Mark Sold Out</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {menuItems.length === 0 && <div className="p-6 text-center text-gray-500">No menu items found.</div>}
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+          <Card className="sticky top-8">
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Plus className="w-5 h-5 text-accent" />
+                Add Item
+              </CardTitle>
+              <p className="text-sm text-ink/60">Create a new item for your menu</p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCreateItem} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-ink/80">Name</label>
+                  <Input required value={newItemName} onChange={e => setNewItemName(e.target.value)} placeholder="e.g. Avocado Toast" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-ink/80">Price ($)</label>
+                    <Input required value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} type="number" step="0.01" placeholder="9.99" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-ink/80">Initial Stock</label>
+                    <Input required value={newItemStock} onChange={e => setNewItemStock(e.target.value)} type="number" placeholder="50" />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full mt-2">
+                  Add Item
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Package className="w-5 h-5 text-fresh" />
+                Current Menu
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-muted/30 bg-muted/5">
+                      <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">Item Name</th>
+                      <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">Price</th>
+                      <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">Stock</th>
+                      <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-muted/20">
+                    {menuItems.map(item => (
+                      <tr key={item.id} className="hover:bg-muted/5 transition-colors">
+                        <td className="px-6 py-4 font-medium text-ink">{item.name}</td>
+                        <td className="px-6 py-4 text-ink/70">${item.price}</td>
+                        <td className="px-6 py-4 font-mono">{item.stock_qty}</td>
+                        <td className="px-6 py-4">
+                          <Badge variant={item.is_available ? 'success' : 'error'}>
+                            {item.is_available ? 'Active' : 'Sold Out'}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <Button variant="secondary" size="sm" onClick={() => handleUpdateStock(item.id, item.stock_qty + 5)}>
+                            +5 Stock
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-status-error hover:bg-status-error/10 hover:text-status-error" onClick={() => handleUpdateStock(item.id, 0)}>
+                            Sold Out
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {menuItems.length === 0 && (
+                  <div className="p-12 text-center text-ink/50 font-medium">
+                    No menu items found. Add your first item!
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
