@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { fetchApi } from "../../lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Users, Store, DollarSign, Activity } from "lucide-react";
 
 type Analytics = {
   total_orders: number;
@@ -35,58 +38,150 @@ export default function AdminDashboard() {
     .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div>Loading platform data...</div>;
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex items-center gap-2 text-ink/60 font-medium animate-pulse">
+          <Activity className="w-5 h-5" />
+          Loading platform data...
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-6">Platform Overview</h2>
+    <div className="space-y-12 pb-12">
+      <div className="space-y-2">
+        <h2 className="font-display text-4xl font-bold">Platform Overview</h2>
+        <p className="text-ink/80 text-lg">Real-time statistics and vendor management.</p>
+      </div>
 
       {analytics && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white p-6 rounded shadow-sm border border-l-4 border-l-blue-500">
-            <p className="text-gray-500 text-sm font-medium tracking-wide uppercase">Total Vendors</p>
-            <p className="text-3xl font-bold mt-2">{analytics.total_vendors}</p>
-          </div>
-          <div className="bg-white p-6 rounded shadow-sm border border-l-4 border-l-green-500">
-            <p className="text-gray-500 text-sm font-medium tracking-wide uppercase">Total Orders</p>
-            <p className="text-3xl font-bold mt-2">{analytics.total_orders}</p>
-          </div>
-          <div className="bg-white p-6 rounded shadow-sm border border-l-4 border-l-purple-500">
-            <p className="text-gray-500 text-sm font-medium tracking-wide uppercase">Total Revenue (Delivered)</p>
-            <p className="text-3xl font-bold mt-2">${analytics.total_revenue}</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white/80 backdrop-blur border-none shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-accent" />
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <p className="text-sm font-mono text-ink/60 uppercase tracking-wider">Total Vendors</p>
+                  <p className="font-display text-4xl font-bold">{analytics.total_vendors}</p>
+                </div>
+                <div className="p-3 bg-accent/10 rounded-xl">
+                  <Store className="w-6 h-6 text-accent" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/80 backdrop-blur border-none shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-fresh" />
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <p className="text-sm font-mono text-ink/60 uppercase tracking-wider">Total Orders</p>
+                  <p className="font-display text-4xl font-bold">{analytics.total_orders}</p>
+                </div>
+                <div className="p-3 bg-fresh/10 rounded-xl">
+                  <PackageIcon className="w-6 h-6 text-fresh" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/80 backdrop-blur border-none shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-400" />
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <p className="text-sm font-mono text-ink/60 uppercase tracking-wider">Total Revenue</p>
+                  <p className="font-display text-4xl font-bold">${analytics.total_revenue}</p>
+                </div>
+                <div className="p-3 bg-indigo-400/10 rounded-xl">
+                  <DollarSign className="w-6 h-6 text-indigo-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      <h3 className="text-xl font-semibold mb-4">Vendor Roster</h3>
-      <div className="bg-white border rounded shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {vendors.map(vendor => (
-              <tr key={vendor.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">{vendor.id.substring(0,8)}...</td>
-                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{vendor.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${vendor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {vendor.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(vendor.created_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="space-y-6">
+        <div className="flex items-center gap-2">
+          <Users className="w-6 h-6 text-accent" />
+          <h3 className="font-display text-2xl font-bold">Vendor Roster</h3>
+        </div>
+        
+        <Card className="overflow-hidden border-none shadow-sm bg-white/80 backdrop-blur">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-muted/30 bg-muted/5">
+                    <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 font-mono text-xs text-ink/60 uppercase tracking-wider">Joined</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-muted/20">
+                  {vendors.map(vendor => (
+                    <tr key={vendor.id} className="hover:bg-muted/5 transition-colors">
+                      <td className="px-6 py-4 font-mono text-xs text-ink/50 tracking-tight">
+                        {vendor.id.substring(0, 8)}...
+                      </td>
+                      <td className="px-6 py-4 font-medium text-ink">
+                        {vendor.name}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant={vendor.status === 'active' ? 'success' : 'warning'}>
+                          {vendor.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-ink/60">
+                        {new Date(vendor.created_at).toLocaleDateString(undefined, { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                  {vendors.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-ink/50 font-medium">
+                        No vendors registered yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
+  );
+}
+
+// Inline icon component since we forgot to import Package
+function PackageIcon(props: React.ComponentProps<"svg">) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m7.5 4.27 9 5.15" />
+      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+      <path d="m3.3 7 8.7 5 8.7-5" />
+      <path d="M12 22V12" />
+    </svg>
   );
 }
