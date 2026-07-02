@@ -26,10 +26,10 @@ Phase 8 — Docker, CI/CD setup, README and finalized repository.
 - [x] Phase C — Order tracking (signature live timeline)
 - [x] Phase D — Vendor dashboard (Kanban order management)
 - [x] Phase E — Admin dashboard
-- [ ] Phase F — Responsive polish, accessibility, motion pass
+- [x] Phase F — Responsive polish, accessibility, motion pass
 
 ### Last completed
-Phase E — Admin dashboard
+Phase F — Responsive polish, accessibility, motion pass
 
 ### Next up
-Phase F — Responsive polish, accessibility, motion pass
+🎉 Frontend Redesign Complete! 🎉
