@@ -14,6 +14,7 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
   
   const [order, setOrder] = useState<any>(null);
   const [status, setStatus] = useState<OrderStatus>("placed");
+  const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [loading, setLoading] = useState(true);
   const statusRef = useRef<OrderStatus>("placed");
 
@@ -32,8 +33,13 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
     let reconnectTimeout: NodeJS.Timeout;
 
     const connectWS = () => {
-      ws = new WebSocket(`${WS_URL}/orders/${orderId}/track`);
+      const token = localStorage.getItem("accessToken");
+      ws = new WebSocket(`${WS_URL}/orders/${orderId}/track?token=${token}`);
       
+      ws.onopen = () => {
+        setWsStatus("connected");
+      };
+
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -56,6 +62,7 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
       };
 
       ws.onclose = () => {
+        setWsStatus("disconnected");
         // Reconnect after 3s
         reconnectTimeout = setTimeout(connectWS, 3000);
       };
@@ -92,7 +99,15 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
       </Link>
       
       <div className="space-y-2">
-        <h2 className="font-display text-4xl font-bold">Order Tracking</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-4xl font-bold">Order Tracking</h2>
+          {wsStatus === "disconnected" && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-status-error/10 text-status-error rounded-full text-sm font-medium animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-status-error"></span>
+              Disconnected (Reconnecting...)
+            </div>
+          )}
+        </div>
         <p className="font-mono text-ink/60">#{order.id}</p>
       </div>
       

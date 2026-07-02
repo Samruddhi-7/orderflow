@@ -38,7 +38,7 @@ Phase F — Responsive polish, accessibility, motion pass
 - [x] Phase 1 — Contract audit (does frontend match backend, endpoint by endpoint)
 - [x] Phase 2 — Auth flow end-to-end
 - [x] Phase 3 — Order lifecycle end-to-end, including concurrency/idempotency
-- [ ] Phase 4 — WebSocket reliability
+- [x] Phase 4 — WebSocket reliability
 - [x] Phase 5 — RBAC enforcement, both layers
 - [ ] Phase 6 — Error handling & edge cases
 - [ ] Phase 7 — Environment, CORS, and fresh-clone build check
@@ -61,6 +61,10 @@ Phase F — Responsive polish, accessibility, motion pass
   - Tested: Concurrency prevention logic (Atomic DB decrement vs. Redis SETNX lock) is completely functional and prevents overselling.
   - Tested: Tested idempotency with the `Idempotency-Key` header end-to-end via the real API, confirming only one order is generated per unique key.
   - Fixed: Migrated `TestOrderConcurrency` to use `testcontainers-go` (just like `TestOrderService_Integration`), ensuring the integration test reliably runs in all environments (including GitHub Actions) and isn't silently skipped. Fixed local DB constraints preventing it from passing.
+- **Phase 4 (WebSocket reliability)**:
+  - Checked: Live delivery of status updates.
+  - Found: Missing authentication mechanism for WebSocket connections and a potential data leakage vulnerability where any connected client could listen to any order ID. Fixed: Updated `AuthMiddleware` to parse query parameter tokens and `trackOrderWS` to enforce role scopes (Customer A cannot listen to Customer B's order). Verified fix via `test-ws-auth.js` script (enforces `403 Forbidden`).
+  - Found: Frontend did not provide clear feedback during websocket disconnects. Fixed: Exposed `wsStatus` state in `order/[id]/page.tsx` displaying a "Disconnected (Reconnecting...)" animated pill badge if the WS connection drops, and ensured it automatically attempts reconnection every 3s.
 - **Phase 5 (RBAC enforcement, both layers)**:
   - Checked: Frontend correctly implements layout-level route guards (`layout.tsx`) that forcefully redirect users away from restricted modules (e.g., customers cannot load the `/vendor` or `/admin` routes). Thus, protected buttons and actions are never rendered for unauthorized roles.
   - Checked: Backend correctly enforces restrictions via `RequireRole` middleware on the Gin router. 

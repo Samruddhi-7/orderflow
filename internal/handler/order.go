@@ -250,6 +250,44 @@ func (h *Handler) updateOrderStatus(c *gin.Context) {
 
 func (h *Handler) trackOrderWS(c *gin.Context) {
 	orderID := c.Param("id")
+	payload := c.MustGet(middleware.AuthorizationPayloadKey).(*util.UserClaims)
+
+	order, err := h.services.Order.GetOrder(c.Request.Context(), orderID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
+		return
+	}
+
+	var customerIDStr string
+	if len(order.CustomerID.Bytes) == 16 {
+		customerIDStr = util.UUIDString(order.CustomerID.Bytes)
+	}
+
+	var vendorIDStr string
+	if len(order.VendorID.Bytes) == 16 {
+		vendorIDStr = util.UUIDString(order.VendorID.Bytes)
+	}
+
+	if payload.Role == "customer" && payload.UserID != customerIDStr {
+		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	if payload.Role == "vendor" {
+		vendor, vendorErr := h.services.Vendor.GetVendorByID(c.Request.Context(), vendorIDStr)
+		if vendorErr != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized"})
+			return
+		}
+		var ownerIDStr string
+		if len(vendor.UserID.Bytes) == 16 {
+			ownerIDStr = util.UUIDString(vendor.UserID.Bytes)
+		}
+		if ownerIDStr != payload.UserID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized"})
+			return
+		}
+	}
 
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {

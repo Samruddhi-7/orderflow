@@ -19,25 +19,30 @@ const (
 // AuthMiddleware is Gin middleware to authenticate requests with JWT
 func AuthMiddleware(tokenMaker *util.TokenMaker) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var accessToken string
+
 		authorizationHeader := c.GetHeader(AuthorizationHeaderKey)
-		if len(authorizationHeader) == 0 {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header is not provided"})
-			return
+		if len(authorizationHeader) != 0 {
+			fields := strings.Fields(authorizationHeader)
+			if len(fields) < 2 {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization header format"})
+				return
+			}
+			authorizationType := strings.ToLower(fields[0])
+			if authorizationType != AuthorizationTypeBearer {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unsupported authorization type"})
+				return
+			}
+			accessToken = fields[1]
+		} else {
+			// Fallback to query parameter (e.g. for WebSockets)
+			accessToken = c.Query("token")
+			if len(accessToken) == 0 {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header or token query parameter is not provided"})
+				return
+			}
 		}
 
-		fields := strings.Fields(authorizationHeader)
-		if len(fields) < 2 {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization header format"})
-			return
-		}
-
-		authorizationType := strings.ToLower(fields[0])
-		if authorizationType != AuthorizationTypeBearer {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unsupported authorization type"})
-			return
-		}
-
-		accessToken := fields[1]
 		payload, err := tokenMaker.VerifyToken(accessToken)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
