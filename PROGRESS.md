@@ -22,14 +22,14 @@ Phase 8 — Docker, CI/CD setup, README and finalized repository.
 
 ## Frontend Redesign
 - [x] Phase A — Design tokens & component foundation
-- [ ] Phase B — Customer flow (browse, menu, cart, checkout)
+- [x] Phase B — Customer flow (browse, menu, cart, checkout)
 - [ ] Phase C — Order tracking (signature live timeline)
 - [ ] Phase D — Vendor dashboard (Kanban order management)
 - [ ] Phase E — Admin dashboard
 - [ ] Phase F — Responsive polish, accessibility, motion pass
 
 ### Last completed
-Phase A — Design tokens & component foundation
+Phase B — Customer flow (browse, menu, cart, checkout)
 
 ### Next up
-Phase B — Customer flow (browse, menu, cart, checkout)
+Phase C — Order tracking (signature live timeline)
