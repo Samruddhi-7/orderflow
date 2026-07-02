@@ -98,7 +98,7 @@ func TestOrderService_Integration(t *testing.T) {
 	}
 
 	itemIDStr := fmt.Sprintf("%x-%x-%x-%x-%x", menuItem.ID.Bytes[0:4], menuItem.ID.Bytes[4:6], menuItem.ID.Bytes[6:8], menuItem.ID.Bytes[8:10], menuItem.ID.Bytes[10:16])
-	vendorIDStr := fmt.Sprintf("%x-%x-%x-%x-%x", vendorUUID.Bytes[0:4], vendorUUID.Bytes[4:6], vendorUUID.Bytes[6:8], vendorUUID.Bytes[8:10], vendorUUID.Bytes[10:16])
+	vendorIDStr := fmt.Sprintf("%x-%x-%x-%x-%x", vendor.ID.Bytes[0:4], vendor.ID.Bytes[4:6], vendor.ID.Bytes[6:8], vendor.ID.Bytes[8:10], vendor.ID.Bytes[10:16])
 	customerIDStr := fmt.Sprintf("%x-%x-%x-%x-%x", customerUUID.Bytes[0:4], customerUUID.Bytes[4:6], customerUUID.Bytes[6:8], customerUUID.Bytes[8:10], customerUUID.Bytes[10:16])
 
 	// 2. Test Order Creation & Total Calculation
