@@ -53,7 +53,7 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
           <p className="text-sm opacity-90">{error}</p>
         </div>
         <Link href="/customer">
-          <Button variant="outline">Back to Dashboard</Button>
+          <Button variant="secondary">Back to Dashboard</Button>
         </Link>
       </div>
     );

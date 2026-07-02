@@ -46,7 +46,7 @@ export default function CustomerDashboard() {
           <p className="font-semibold mb-1">Could not load dashboard</p>
           <p className="text-sm opacity-90">{error}</p>
         </div>
-        <Button onClick={() => window.location.reload()} variant="outline">
+        <Button onClick={() => window.location.reload()} variant="secondary">
           Retry
         </Button>
       </div>
