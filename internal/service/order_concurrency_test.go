@@ -6,31 +6,60 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/Samruddhi-7/orderflow/internal/cache"
 	"github.com/Samruddhi-7/orderflow/internal/repository"
 	"github.com/Samruddhi-7/orderflow/internal/repository/db"
 	"github.com/Samruddhi-7/orderflow/internal/service"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 // TestOrderConcurrency demonstrates the concurrency-safe inventory decrement logic
 // by firing many concurrent order requests against a single low-stock menu item.
 func TestOrderConcurrency(t *testing.T) {
-	// 1. Setup connection (Assuming a local test DB and Redis)
+	if testing.Short() {
+		t.Skip("Skipping integration test in short mode")
+	}
 	ctx := context.Background()
-	connStr := "postgres://postgres:postgres@localhost:5432/orderflow?sslmode=disable"
-	pool, err := pgxpool.New(ctx, connStr)
+
+	// Spin up Postgres using testcontainers
+	pgContainer, err := postgres.RunContainer(ctx,
+		testcontainers.WithImage("postgres:16-alpine"),
+		postgres.WithDatabase("test_db"),
+		postgres.WithUsername("test_user"),
+		postgres.WithPassword("test_pass"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(5*time.Second)),
+	)
 	if err != nil {
-		t.Skipf("Skipping integration test; could not create pgxpool: %v", err)
+		t.Fatalf("Failed to start pg container: %v", err)
+	}
+	defer func() {
+		if err := pgContainer.Terminate(ctx); err != nil {
+			t.Fatalf("Failed to terminate pg container: %v", err)
+		}
+	}()
+
+	connString, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		t.Fatalf("Failed to get connection string: %v", err)
+	}
+
+	pool, err := pgxpool.New(ctx, connString)
+	if err != nil {
+		t.Fatalf("Failed to connect to pg: %v", err)
 	}
 	defer pool.Close()
 
-	if err := pool.Ping(ctx); err != nil {
-		t.Skipf("Skipping integration test; could not connect to Postgres: %v", err)
-	}
+	// Use setupSchema from order_test.go since they are in the same package
+	setupSchema(t, pool)
 
 	redisCache, err := cache.NewRedisCache("localhost:6379")
 	if err != nil {
@@ -41,19 +70,21 @@ func TestOrderConcurrency(t *testing.T) {
 	orderService := service.NewOrderService(store, redisCache)
 	queries := db.New(pool)
 
-	// 2. Setup Data
-	vendorUUID, _ := uuid.NewRandom()
-	var pgVendorID pgtype.UUID
-	if err := pgVendorID.Scan(vendorUUID.String()); err != nil {
-		t.Fatalf("failed to scan vendor UUID: %v", err)
+	// Create a user first for the vendor to satisfy foreign key
+	userVendor, err := queries.CreateUser(ctx, db.CreateUserParams{
+		Email:        "vendor_concurrency@v.com",
+		PasswordHash: "h",
+		Role:         "vendor",
+	})
+	if err != nil {
+		t.Fatalf("failed to create vendor user: %v", err)
 	}
+	pgVendorID := userVendor.ID
 
 	// Create a vendor
-	_, err = queries.CreateVendor(ctx, db.CreateVendorParams{
-		UserID:      pgVendorID, // just mock for now
-		Name:        "Concurrency Test Vendor",
-
-
+	vendor, err := queries.CreateVendor(ctx, db.CreateVendorParams{
+		UserID: pgVendorID,
+		Name:   "Concurrency Test Vendor",
 	})
 	if err != nil {
 		t.Fatalf("failed to create vendor: %v", err)
@@ -67,7 +98,7 @@ func TestOrderConcurrency(t *testing.T) {
 	}
 	
 	menuItem, err := queries.CreateMenuItem(ctx, db.CreateMenuItemParams{
-		VendorID:    pgVendorID,
+		VendorID:    vendor.ID,
 		Name:        "Limited Edition Burger",
 		Price:       price,
 		StockQty:    initialStock,
@@ -83,8 +114,22 @@ func TestOrderConcurrency(t *testing.T) {
 	}
 	
 	var vendorIDStr string
-	if len(pgVendorID.Bytes) == 16 {
-		vendorIDStr = fmt.Sprintf("%x-%x-%x-%x-%x", pgVendorID.Bytes[0:4], pgVendorID.Bytes[4:6], pgVendorID.Bytes[6:8], pgVendorID.Bytes[8:10], pgVendorID.Bytes[10:16])
+	if len(vendor.ID.Bytes) == 16 {
+		vendorIDStr = fmt.Sprintf("%x-%x-%x-%x-%x", vendor.ID.Bytes[0:4], vendor.ID.Bytes[4:6], vendor.ID.Bytes[6:8], vendor.ID.Bytes[8:10], vendor.ID.Bytes[10:16])
+	}
+
+	// Create a single customer for all concurrent requests
+	userCustomer, err := queries.CreateUser(ctx, db.CreateUserParams{
+		Email:        "customer_concurrency@c.com",
+		PasswordHash: "h",
+		Role:         "customer",
+	})
+	if err != nil {
+		t.Fatalf("failed to create customer user: %v", err)
+	}
+	var customerIDStr string
+	if len(userCustomer.ID.Bytes) == 16 {
+		customerIDStr = fmt.Sprintf("%x-%x-%x-%x-%x", userCustomer.ID.Bytes[0:4], userCustomer.ID.Bytes[4:6], userCustomer.ID.Bytes[6:8], userCustomer.ID.Bytes[8:10], userCustomer.ID.Bytes[10:16])
 	}
 
 	// 3. Fire Concurrent Requests
@@ -105,7 +150,6 @@ func TestOrderConcurrency(t *testing.T) {
 		go func(reqNum int) {
 			defer wg.Done()
 
-			customerUUID, _ := uuid.NewRandom()
 			idempotencyKey := fmt.Sprintf("test-key-%d", reqNum)
 
 			items := map[string]int32{
@@ -113,7 +157,7 @@ func TestOrderConcurrency(t *testing.T) {
 			}
 
 			req := service.CreateOrderRequest{
-				CustomerID:     customerUUID.String(),
+				CustomerID:     customerIDStr,
 				VendorID:       vendorIDStr,
 				Items:          items,
 				IdempotencyKey: idempotencyKey,

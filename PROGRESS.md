@@ -37,7 +37,7 @@ Phase F — Responsive polish, accessibility, motion pass
 ## Integration & QA Audit
 - [x] Phase 1 — Contract audit (does frontend match backend, endpoint by endpoint)
 - [x] Phase 2 — Auth flow end-to-end
-- [ ] Phase 3 — Order lifecycle end-to-end, including concurrency/idempotency
+- [x] Phase 3 — Order lifecycle end-to-end, including concurrency/idempotency
 - [ ] Phase 4 — WebSocket reliability
 - [ ] Phase 5 — RBAC enforcement, both layers
 - [ ] Phase 6 — Error handling & edge cases
@@ -55,3 +55,9 @@ Phase F — Responsive polish, accessibility, motion pass
   - Found: Frontend `fetchApi` did not intercept `401 Unauthorized` responses and ignored refresh tokens entirely. Fixed: Implemented a robust 401 interceptor in `web/src/lib/api.ts` that saves the refresh token, calls `/auth/refresh` when an access token expires, and retries the original request.
   - Found: Frontend `logout` merely cleared `localStorage` and skipped notifying the backend. Fixed: Modified `AuthProvider.tsx` to explicitly POST to `/api/v1/auth/logout` with the active refresh token to ensure server-side revocation.
   - Checked: Next.js frontend route guards (`user.role !== "admin"` etc.) effectively enforce the same RBAC scopes as the Gin middleware on the backend.
+- **Phase 3 (Order Lifecycle & Concurrency)**:
+  - Checked: Out-of-stock errors surface cleanly on the frontend as structured errors rather than silent failures.
+  - Checked: Order placement, vendor state progression (via Kanban), and live customer updates work correctly. Customer cancellation is present on the vendor UI as expected.
+  - Tested: Concurrency prevention logic (Atomic DB decrement vs. Redis SETNX lock) is completely functional and prevents overselling.
+  - Tested: Tested idempotency with the `Idempotency-Key` header end-to-end via the real API, confirming only one order is generated per unique key.
+  - Fixed: Migrated `TestOrderConcurrency` to use `testcontainers-go` (just like `TestOrderService_Integration`), ensuring the integration test reliably runs in all environments (including GitHub Actions) and isn't silently skipped. Fixed local DB constraints preventing it from passing.
