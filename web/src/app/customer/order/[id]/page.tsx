@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import { fetchApi, WS_URL } from "../../../../lib/api";
 import Link from "next/link";
 import { Timeline, OrderStatus } from "@/components/ui/Timeline";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 export default function OrderTracking({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -14,29 +15,57 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
   const [order, setOrder] = useState<any>(null);
   const [status, setStatus] = useState<OrderStatus>("placed");
   const [loading, setLoading] = useState(true);
+  const statusRef = useRef<OrderStatus>("placed");
 
   useEffect(() => {
     fetchApi(`/orders/${orderId}`)
       .then(data => {
         setOrder(data);
         setStatus(data.status as OrderStatus);
+        statusRef.current = data.status as OrderStatus;
       })
       .catch(console.error)
       .finally(() => setLoading(false));
 
-    // Setup WebSocket
-    const ws = new WebSocket(`${WS_URL}/orders/${orderId}/track`);
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.status) {
-          setStatus(data.status as OrderStatus);
-        }
-      } catch (e) {}
+    // Setup WebSocket with reconnect logic
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: NodeJS.Timeout;
+
+    const connectWS = () => {
+      ws = new WebSocket(`${WS_URL}/orders/${orderId}/track`);
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.status && data.status !== statusRef.current) {
+            const oldStatus = statusRef.current;
+            setStatus(data.status as OrderStatus);
+            statusRef.current = data.status as OrderStatus;
+            
+            // Show nice toast based on status
+            const statusNames: Record<string, string> = {
+              confirmed: "Order Confirmed!",
+              preparing: "Order is now being prepared.",
+              out_for_delivery: "Your order is out for delivery!",
+              delivered: "Order Delivered. Enjoy!"
+            };
+            
+            toast.success(statusNames[data.status] || `Status updated to ${data.status.replace(/_/g, ' ')}`);
+          }
+        } catch (e) {}
+      };
+
+      ws.onclose = () => {
+        // Reconnect after 3s
+        reconnectTimeout = setTimeout(connectWS, 3000);
+      };
     };
 
+    connectWS();
+
     return () => {
-      ws.close();
+      if (ws) ws.close();
+      clearTimeout(reconnectTimeout);
     };
   }, [orderId]);
 

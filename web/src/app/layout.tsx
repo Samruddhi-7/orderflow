@@ -3,27 +3,30 @@ import { Fraunces, Inter, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../components/AuthProvider";
 import { CartProvider } from "@/lib/cart";
+import { Toaster } from "sonner";
 
 const fontDisplay = Fraunces({
   variable: "--font-fraunces",
   subsets: ["latin"],
-  axes: ["opsz", "SOFT", "WONK"],
+  display: "swap",
 });
 
 const fontSans = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const fontMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
-  subsets: ["latin"],
+  variable: "--font-mono",
   weight: ["400", "500", "600"],
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "OrderFlow",
-  description: "Multi-vendor food ordering platform",
+  description: "A soft, premium multi-vendor order experience.",
 };
 
 export default function RootLayout({
@@ -34,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable}`}
     >
       <body className="min-h-full flex flex-col bg-bg text-ink font-sans">
         <AuthProvider>
@@ -44,6 +47,14 @@ export default function RootLayout({
             </main>
           </CartProvider>
         </AuthProvider>
+        <Toaster position="bottom-right" toastOptions={{
+          style: {
+            background: 'var(--color-bg)',
+            color: 'var(--color-ink)',
+            border: '1px solid var(--color-muted)',
+            borderRadius: '12px',
+          }
+        }} />
       </body>
     </html>
   );
