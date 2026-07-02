@@ -2,8 +2,12 @@
 
 import { useEffect, useState, use } from "react";
 import { fetchApi } from "../../../../lib/api";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { useCart } from "@/lib/cart";
+import { ArrowLeft } from "lucide-react";
 
 type MenuItem = {
   id: string;
@@ -16,109 +20,100 @@ type MenuItem = {
 export default function VendorMenu({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const vendorId = unwrappedParams.id;
-  const router = useRouter();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [cart, setCart] = useState<{ [id: string]: number }>({});
   const [vendor, setVendor] = useState<any>(null);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  
+  const { addItem, cart } = useCart();
 
   useEffect(() => {
-    fetchApi(`/vendors/${vendorId}`).then(setVendor).catch(console.error);
-    fetchApi(`/vendors/${vendorId}/menu`).then(setMenuItems).catch(console.error);
+    Promise.all([
+      fetchApi(`/vendors/${vendorId}`).then(setVendor).catch(console.error),
+      fetchApi(`/vendors/${vendorId}/menu`).then(setMenuItems).catch(console.error)
+    ]).finally(() => setLoading(false));
   }, [vendorId]);
 
-  const addToCart = (id: string, qty: number) => {
-    setCart(prev => ({
-      ...prev,
-      [id]: (prev[id] || 0) + qty
-    }));
-  };
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-ink/60 font-medium animate-pulse">Loading menu...</div>
+      </div>
+    );
+  }
 
-  const placeOrder = async () => {
-    setError("");
-    const items = Object.entries(cart).map(([id, qty]) => ({ menu_item_id: id, qty }));
-    if (items.length === 0) return;
-
-    try {
-      const idempotencyKey = "client-key-" + Date.now();
-      await fetchApi("/orders", {
-        method: "POST",
-        headers: { "Idempotency-Key": idempotencyKey },
-        body: JSON.stringify({
-          vendor_id: vendorId,
-          items,
-          use_redis_lock: false,
-        }),
-      });
-      router.push("/customer");
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  if (!vendor) return <div>Loading...</div>;
+  if (!vendor) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-status-error font-medium">Vendor not found.</p>
+        <Link href="/customer" className="mt-4">
+          <Button variant="secondary">Go back</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <Link href="/customer" className="text-blue-600 mb-4 inline-block">&larr; Back</Link>
-      
-      <h2 className="text-3xl font-bold mb-2">{vendor.name} Menu</h2>
-      <p className="text-gray-600 mb-8">{vendor.description}</p>
-      
-      {error && <div className="bg-red-50 text-red-500 p-3 rounded mb-4">{error}</div>}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-xl font-semibold mb-4">Items</h3>
-          <div className="space-y-4">
-            {menuItems.map(item => (
-              <div key={item.id} className="p-4 border rounded flex justify-between items-center">
-                <div>
-                  <h4 className="font-bold">{item.name}</h4>
-                  <p className="text-gray-600">${item.price}</p>
-                  <p className="text-xs text-gray-500">Stock: {item.stock_qty}</p>
-                </div>
-                <button 
-                  onClick={() => addToCart(item.id, 1)}
-                  disabled={!item.is_available || item.stock_qty === 0}
-                  className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                >
-                  Add
-                </button>
-              </div>
-            ))}
-          </div>
+    <div className="pb-20 space-y-8 max-w-4xl mx-auto">
+      <div>
+        <Link href="/customer" className="inline-flex items-center text-sm font-medium text-ink/60 hover:text-ink transition-colors mb-6">
+          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+        </Link>
+        
+        <h2 className="font-display text-4xl font-bold">{vendor.name}</h2>
+        <p className="text-ink/80 text-lg mt-2 max-w-2xl">{vendor.description}</p>
+        <div className="mt-4">
+          {vendor.status === 'active' ? (
+            <Badge variant="success">Accepting Orders</Badge>
+          ) : (
+            <Badge variant="muted">Currently Closed</Badge>
+          )}
         </div>
-
-        <div>
-          <div className="p-6 border rounded bg-gray-50 sticky top-4">
-            <h3 className="text-xl font-semibold mb-4">Cart</h3>
-            {Object.keys(cart).length === 0 ? (
-              <p className="text-gray-500">Your cart is empty.</p>
-            ) : (
-              <div className="space-y-2 mb-6">
-                {Object.entries(cart).map(([id, qty]) => {
-                  const item = menuItems.find(i => i.id === id);
-                  return item && (
-                    <div key={id} className="flex justify-between">
-                      <span>{qty}x {item.name}</span>
-                      <span>${(parseFloat(item.price) * qty).toFixed(2)}</span>
+      </div>
+      
+      <div className="space-y-6">
+        <h3 className="font-display text-2xl font-bold border-b border-muted/30 pb-4">Menu</h3>
+        
+        {menuItems.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-muted p-12 text-center">
+            <p className="text-ink/60 font-medium">No items available on the menu.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {menuItems.map(item => {
+              const inCartCount = cart.items.find(i => i.id === item.id)?.quantity || 0;
+              const isAvailable = item.is_available && item.stock_qty > 0 && vendor.status === 'active';
+              
+              return (
+                <Card key={item.id} className="flex flex-col justify-between">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start gap-4">
+                      <CardTitle className="text-xl leading-tight">{item.name}</CardTitle>
+                      <span className="font-mono font-medium shrink-0 bg-accent-soft px-2 py-1 rounded-md text-sm">
+                        ${Number(item.price).toFixed(2)}
+                      </span>
                     </div>
-                  )
-                })}
-              </div>
-            )}
-            
-            <button 
-              onClick={placeOrder}
-              disabled={Object.keys(cart).length === 0}
-              className="w-full bg-green-600 text-white font-bold py-2 rounded disabled:opacity-50"
-            >
-              Place Order
-            </button>
+                  </CardHeader>
+                  <CardContent>
+                    {!isAvailable && (
+                      <p className="text-status-error text-sm font-medium mt-1">Out of stock</p>
+                    )}
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <Button 
+                      variant={isAvailable ? "primary" : "secondary"}
+                      className="w-full"
+                      disabled={!isAvailable}
+                      onClick={() => addItem(vendorId, { id: item.id, name: item.name, price: item.price })}
+                    >
+                      {inCartCount > 0 ? `Add Another (${inCartCount} in cart)` : 'Add to Cart'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

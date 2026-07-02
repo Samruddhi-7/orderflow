@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { fetchApi } from "../../lib/api";
 import Link from "next/link";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 
 type Vendor = {
   id: string;
@@ -14,50 +17,116 @@ type Vendor = {
 export default function CustomerDashboard() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApi("/vendors").then(setVendors).catch(console.error);
-    fetchApi("/orders").then(setOrders).catch(console.error);
+    Promise.all([
+      fetchApi("/vendors").then(setVendors).catch(console.error),
+      fetchApi("/orders").then(setOrders).catch(console.error)
+    ]).finally(() => setLoading(false));
   }, []);
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Restaurants</h2>
-        <div className="space-y-4">
-          {vendors.map(v => (
-            <div key={v.id} className="p-4 border rounded shadow-sm hover:shadow-md transition">
-              <h3 className="font-bold text-lg">{v.name}</h3>
-              <p className="text-gray-600 text-sm mb-2">{v.description}</p>
-              <Link href={`/customer/vendor/${v.id}`} className="text-blue-600 text-sm font-medium">
-                View Menu &rarr;
-              </Link>
-            </div>
-          ))}
-          {vendors.length === 0 && <p className="text-gray-500">No restaurants available.</p>}
-        </div>
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="text-ink/60 font-medium animate-pulse">Loading dashboard...</div>
       </div>
+    );
+  }
 
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">My Orders</h2>
-        <div className="space-y-4">
-          {orders.map(o => (
-            <div key={o.id} className="p-4 border rounded bg-gray-50">
-              <div className="flex justify-between items-start mb-2">
-                <span className="font-mono text-xs text-gray-500">#{o.id.substring(0,8)}</span>
-                <span className={`px-2 py-1 text-xs font-bold rounded uppercase ${o.status === 'delivered' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}`}>
-                  {o.status}
-                </span>
-              </div>
-              <p className="font-bold mb-2">${o.total_amount}</p>
-              <Link href={`/customer/order/${o.id}`} className="text-blue-600 text-sm font-medium">
-                Track Order &rarr;
-              </Link>
-            </div>
-          ))}
-          {orders.length === 0 && <p className="text-gray-500">No orders yet.</p>}
+  return (
+    <div className="space-y-12 pb-12">
+      <section>
+        <div className="mb-6">
+          <h2 className="font-display text-3xl font-bold">Restaurants</h2>
+          <p className="text-ink/80 mt-1">Discover fresh flavors delivered to your door.</p>
         </div>
-      </div>
+        
+        {vendors.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-muted p-12 text-center">
+            <p className="text-ink/60 font-medium">No restaurants are currently available.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {vendors.map(v => (
+              <Card key={v.id} className="flex flex-col">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <CardTitle className="line-clamp-1">{v.name}</CardTitle>
+                    {v.status === 'active' ? (
+                      <Badge variant="success" className="shrink-0">Open Now</Badge>
+                    ) : (
+                      <Badge variant="muted" className="shrink-0">Closed</Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <p className="text-ink/70 text-sm line-clamp-2">
+                    {v.description || "No description provided by this vendor."}
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Link href={`/customer/vendor/${v.id}`} className="w-full">
+                    <Button variant={v.status === 'active' ? "primary" : "secondary"} className="w-full">
+                      View Menu
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <div className="mb-6 flex items-baseline justify-between">
+          <h2 className="font-display text-3xl font-bold">Recent Orders</h2>
+        </div>
+        
+        {orders.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-muted p-12 text-center">
+            <p className="text-ink/60 font-medium">No orders yet — your order history will appear here.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {orders.map(o => {
+              const statusColors: Record<string, "success" | "warning" | "default"> = {
+                delivered: "success",
+                out_for_delivery: "success",
+                preparing: "warning",
+                confirmed: "warning",
+                placed: "default"
+              };
+              
+              return (
+                <Link key={o.id} href={`/customer/order/${o.id}`}>
+                  <Card className="hover:border-accent/30 hover:ring-1 hover:ring-accent/30 cursor-pointer h-full">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <span className="font-mono text-sm tracking-tight text-ink/60">
+                          #{o.id.substring(0,8)}
+                        </span>
+                        <Badge variant={statusColors[o.status] || "default"} className="capitalize">
+                          {o.status.replace(/_/g, ' ')}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-sm text-ink/60 mb-1">Total</p>
+                          <p className="font-mono text-xl font-medium">${o.total_amount}</p>
+                        </div>
+                        <span className="text-accent text-sm font-medium">Track &rarr;</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
