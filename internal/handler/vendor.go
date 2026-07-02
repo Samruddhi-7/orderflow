@@ -50,7 +50,7 @@ func (h *Handler) createVendor(c *gin.Context) {
 }
 
 func (h *Handler) getVendor(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Param("vendor_id")
 	
 	vendor, err := h.services.Vendor.GetVendorByID(c.Request.Context(), id)
 	if err != nil {
@@ -76,7 +76,7 @@ type updateVendorStatusRequest struct {
 }
 
 func (h *Handler) updateVendorStatus(c *gin.Context) {
-	id := c.Param("id")
+	id := c.Param("vendor_id")
 
 	var req updateVendorStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

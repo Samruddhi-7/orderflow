@@ -15,8 +15,8 @@ type Analytics = {
 type Vendor = {
   id: string;
   name: string;
-  description: string;
-  status: string;
+  address: string;
+  is_open: boolean;
   created_at: string;
 };
 
@@ -133,8 +133,8 @@ export default function AdminDashboard() {
                         {vendor.name}
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant={vendor.status === 'active' ? 'success' : 'warning'}>
-                          {vendor.status}
+                        <Badge variant={vendor.is_open ? 'success' : 'warning'}>
+                          {vendor.is_open ? 'active' : 'closed'}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-sm text-ink/60">

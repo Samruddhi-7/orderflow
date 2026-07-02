@@ -37,11 +37,15 @@ export default function Home() {
         body: JSON.stringify({ email, password }),
       });
 
-      login(res.access_token, res.user);
+      const tokenParts = res.access_token.split('.');
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const user = { id: payload.user_id, role: payload.role, email: payload.email };
 
-      if (res.user.role === "customer") router.push("/customer");
-      else if (res.user.role === "vendor") router.push("/vendor/orders");
-      else if (res.user.role === "admin") router.push("/admin");
+      login(res.access_token, user);
+
+      if (user.role === "customer") router.push("/customer");
+      else if (user.role === "vendor") router.push("/vendor/orders");
+      else if (user.role === "admin") router.push("/admin");
 
     } catch (err: any) {
       setError(err.message || "An error occurred");

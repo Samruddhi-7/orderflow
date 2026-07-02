@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/Button";
 type Vendor = {
   id: string;
   name: string;
-  description: string;
-  status: string;
+  address: string;
+  is_open: boolean;
 };
 
 export default function CustomerDashboard() {
@@ -53,7 +53,7 @@ export default function CustomerDashboard() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4">
                     <CardTitle className="line-clamp-1">{v.name}</CardTitle>
-                    {v.status === 'active' ? (
+                    {v.is_open ? (
                       <Badge variant="success" className="shrink-0">Open Now</Badge>
                     ) : (
                       <Badge variant="muted" className="shrink-0">Closed</Badge>
@@ -62,12 +62,12 @@ export default function CustomerDashboard() {
                 </CardHeader>
                 <CardContent className="flex-1">
                   <p className="text-ink/70 text-sm line-clamp-2">
-                    {v.description || "No description provided by this vendor."}
+                    {v.address || "No address provided."}
                   </p>
                 </CardContent>
                 <CardFooter>
                   <Link href={`/customer/vendor/${v.id}`} className="w-full">
-                    <Button variant={v.status === 'active' ? "primary" : "secondary"} className="w-full">
+                    <Button variant={v.is_open ? "primary" : "secondary"} className="w-full">
                       View Menu
                     </Button>
                   </Link>

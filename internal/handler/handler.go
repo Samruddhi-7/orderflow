@@ -59,7 +59,7 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 			vendors := authenticated.Group("/vendors")
 			{
 				vendors.GET("", h.listVendors)
-				vendors.GET("/:id", h.getVendor)
+				vendors.GET("/:vendor_id", h.getVendor)
 				vendors.GET("/:vendor_id/menu", h.listMenuItems)
 
 				// Vendor-only mutations
@@ -67,7 +67,7 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 				vendorOnly.Use(middleware.RequireRole("vendor", "admin"))
 				{
 					vendorOnly.POST("", h.createVendor)
-					vendorOnly.PATCH("/:id/status", h.updateVendorStatus)
+					vendorOnly.PATCH("/:vendor_id/status", h.updateVendorStatus)
 					
 					vendorOnly.POST("/:vendor_id/menu", h.createMenuItem)
 					vendorOnly.PATCH("/:vendor_id/menu/:item_id/price", h.updateMenuPrice)

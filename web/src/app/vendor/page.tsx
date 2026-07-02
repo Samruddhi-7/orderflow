@@ -56,7 +56,7 @@ export default function VendorDashboard() {
         method: "POST",
         body: JSON.stringify({
           name: newItemName,
-          price: newItemPrice,
+          price: parseFloat(newItemPrice),
           stock_qty: parseInt(newItemStock),
           is_available: true
         })
@@ -76,7 +76,7 @@ export default function VendorDashboard() {
     try {
       const updated = await fetchApi(`/vendors/${vendor.id}/menu/${itemId}/stock`, {
         method: "PATCH",
-        body: JSON.stringify({ stock_qty: newStock, is_available: newStock > 0 })
+        body: JSON.stringify({ stock_qty: newStock })
       });
       setMenuItems(menuItems.map(m => m.id === itemId ? updated : m));
       toast.success("Stock updated");

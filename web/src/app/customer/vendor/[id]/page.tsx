@@ -61,9 +61,9 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
         </Link>
         
         <h2 className="font-display text-4xl font-bold">{vendor.name}</h2>
-        <p className="text-ink/80 text-lg mt-2 max-w-2xl">{vendor.description}</p>
+        <p className="text-ink/80 text-lg mt-2 max-w-2xl">{vendor.address}</p>
         <div className="mt-4">
-          {vendor.status === 'active' ? (
+          {vendor.is_open ? (
             <Badge variant="success">Accepting Orders</Badge>
           ) : (
             <Badge variant="muted">Currently Closed</Badge>
@@ -82,7 +82,7 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {menuItems.map(item => {
               const inCartCount = cart.items.find(i => i.id === item.id)?.quantity || 0;
-              const isAvailable = item.is_available && item.stock_qty > 0 && vendor.status === 'active';
+              const isAvailable = item.is_available && item.stock_qty > 0 && vendor.is_open;
               
               return (
                 <Card key={item.id} className="flex flex-col justify-between">

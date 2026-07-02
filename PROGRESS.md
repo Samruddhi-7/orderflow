@@ -35,7 +35,7 @@ Phase F — Responsive polish, accessibility, motion pass
 🎉 Frontend Redesign Complete! 🎉
 
 ## Integration & QA Audit
-- [ ] Phase 1 — Contract audit (does frontend match backend, endpoint by endpoint)
+- [x] Phase 1 — Contract audit (does frontend match backend, endpoint by endpoint)
 - [ ] Phase 2 — Auth flow end-to-end
 - [ ] Phase 3 — Order lifecycle end-to-end, including concurrency/idempotency
 - [ ] Phase 4 — WebSocket reliability
@@ -45,4 +45,8 @@ Phase F — Responsive polish, accessibility, motion pass
 - [ ] Phase 8 — Static analysis, tests, and lint, clean run
 
 ### Findings log
-(running list: what was found, where, how it was fixed, commit hash)
+- **Phase 1 (Contract Audit)**:
+  - Found: `/auth/login` backend didn't return user object, but frontend expected `res.user`. Fixed: Extracted user from decoded JWT token on frontend (`web/src/app/page.tsx`).
+  - Found: `/vendors/:id/menu` POST expected float `price`, frontend sent string. Fixed: Added `parseFloat(newItemPrice)` (`web/src/app/vendor/page.tsx`).
+  - Found: `/vendors/:id/menu/:item_id/stock` PATCH sent extraneous `is_available` field. Fixed: Removed field from frontend payload (`web/src/app/vendor/page.tsx`).
+  - Found: `/vendors` and `/admin/vendors` endpoints returned `is_open` and `address`, but frontend expected `status` and `description`. Fixed: Updated frontend `Vendor` types and rendering logic across customer dashboard, vendor menu, and admin dashboard (`page.tsx` files).
