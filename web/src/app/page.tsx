@@ -51,7 +51,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center p-4">
+    <div className="flex-1 flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-bg via-bg to-accent-soft/30">
       <Card className="w-full max-w-md shadow-lg border-none bg-white/80 backdrop-blur">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-3xl mb-2">OrderFlow</CardTitle>
