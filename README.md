@@ -107,6 +107,18 @@ go test -v ./...
 
 ---
 
+## 🛠 Before you commit
+
+To ensure your code passes CI, a pre-commit hook has been added to `.git/hooks/pre-commit`. 
+
+If you bypass the hook, or want to run linting manually, make sure you use the exact version of `golangci-lint` used in CI (v1.59.1).
+Run the following command locally to verify zero errors before committing:
+```bash
+golangci-lint run ./...
+```
+
+---
+
 ## 📖 Swagger/OpenAPI Docs
 
 *(Placeholder for Swagger UI / OpenAPI documentation link)*

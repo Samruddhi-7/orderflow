@@ -40,7 +40,9 @@ func TestOrderConcurrency(t *testing.T) {
 	// 2. Setup Data
 	vendorUUID, _ := uuid.NewRandom()
 	var pgVendorID pgtype.UUID
-	pgVendorID.Scan(vendorUUID.String())
+	if err := pgVendorID.Scan(vendorUUID.String()); err != nil {
+		t.Fatalf("failed to scan vendor UUID: %v", err)
+	}
 
 	// Create a vendor
 	_, err = queries.CreateVendor(ctx, db.CreateVendorParams{
@@ -56,7 +58,9 @@ func TestOrderConcurrency(t *testing.T) {
 	// Create a menu item with limited stock
 	initialStock := int32(10)
 	var price pgtype.Numeric
-	price.Scan("5.99")
+	if err := price.Scan("5.99"); err != nil {
+		t.Fatalf("failed to scan price: %v", err)
+	}
 	
 	menuItem, err := queries.CreateMenuItem(ctx, db.CreateMenuItemParams{
 		VendorID:    pgVendorID,

@@ -68,8 +68,12 @@ func TestOrderService_Integration(t *testing.T) {
 
 	// 1. Setup mock data
 	var customerUUID, vendorUUID pgtype.UUID
-	customerUUID.Scan(uuid.New().String())
-	vendorUUID.Scan(uuid.New().String())
+	if err := customerUUID.Scan(uuid.New().String()); err != nil {
+		t.Fatalf("failed to scan customer UUID: %v", err)
+	}
+	if err := vendorUUID.Scan(uuid.New().String()); err != nil {
+		t.Fatalf("failed to scan vendor UUID: %v", err)
+	}
 
 	_, _ = queries.CreateUser(ctx, db.CreateUserParams{Email: "c@c.com", PasswordHash: "h", Role: "customer"})
 	_, _ = queries.CreateUser(ctx, db.CreateUserParams{Email: "v@v.com", PasswordHash: "h", Role: "vendor"})
@@ -79,7 +83,9 @@ func TestOrderService_Integration(t *testing.T) {
 	})
 
 	var price pgtype.Numeric
-	price.Scan("10.50")
+	if err := price.Scan("10.50"); err != nil {
+		t.Fatalf("failed to scan price: %v", err)
+	}
 	menuItem, err := queries.CreateMenuItem(ctx, db.CreateMenuItemParams{
 		VendorID: vendorUUID, Name: "Burger", Price: price, StockQty: 50, IsAvailable: true,
 	})

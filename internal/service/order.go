@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Samruddhi-7/orderflow/internal/repository/db"
@@ -76,7 +77,11 @@ func (s *orderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 				}
 				
 				// Ensure lock is released at the end of the item processing
-				defer s.cache.Delete(ctx, lockKey)
+				defer func() {
+					if err := s.cache.Delete(ctx, lockKey); err != nil {
+						log.Printf("failed to release redis lock %s: %v", lockKey, err)
+					}
+				}()
 				
 				// After acquiring lock, we still need to check if enough stock exists and update it.
 				// Since we hold the lock, we can safely read and update.

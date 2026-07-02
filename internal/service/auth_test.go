@@ -169,7 +169,7 @@ func TestLoginAndRefreshSuccess(t *testing.T) {
 	}
 
 	// The old token should now be revoked in the mock database
-	storedToken, _ = store.refreshTokens[tokenHashStr]
+	storedToken = store.refreshTokens[tokenHashStr]
 	if !storedToken.Revoked {
 		t.Error("expected old refresh token to be marked revoked after refresh rotation")
 	}
