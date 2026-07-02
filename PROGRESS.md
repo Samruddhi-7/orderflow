@@ -41,7 +41,7 @@ Phase F — Responsive polish, accessibility, motion pass
 - [x] Phase 4 — WebSocket reliability
 - [x] Phase 5 — RBAC enforcement, both layers
 - [x] Phase 6 — Error handling & edge cases
-- [ ] Phase 7 — Environment, CORS, and fresh-clone build check
+- [x] Phase 7 — Environment, CORS, and fresh-clone build check
 - [ ] Phase 8 — Static analysis, tests, and lint, clean run
 
 ### Findings log
@@ -75,3 +75,7 @@ Phase F — Responsive polish, accessibility, motion pass
   - Found: Vendor inventory creation form lacked strict front-end validation, allowing string/negative pricing and quantities to trigger 400 Bad Requests without a clean toast. Fixed: Added inline parsing and toast validation checks to prevent negative values.
   - Checked: Empty states (empty kanban column, empty menu, empty order history) render a sensible empty container instead of throwing errors.
   - Checked: Handled hydration warnings and unique key warnings correctly across Next.js `.map` loops.
+- **Phase 7 (Environment & CORS)**:
+  - Checked: \docker-compose up -d --build\ successfully spins up Postgres, Redis, and the Go API without any issues. The database schema migrations are correctly handled (auto-migrated or pre-existing in the volume/entrypoint) as all tables exist on boot.
+  - Found: \.env.example\ contained unused token duration configurations and an unused \REFRESH_JWT_SECRET\, and was missing \ALLOWED_ORIGIN\. Fixed: Cleaned up \.env.example\ and \docker-compose.yml\ to perfectly match the environment variables actually parsed in \cmd/api/main.go\.
+  - Checked: CORS is explicitly locked to \http://localhost:3000\ rather than a wildcard \*\, which securely matches the frontend's local development origin without being overly permissive.
