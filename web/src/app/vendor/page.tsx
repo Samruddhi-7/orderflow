@@ -28,6 +28,7 @@ export default function VendorDashboard() {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Form states for new item
   const [newItemName, setNewItemName] = useState("");
@@ -43,7 +44,7 @@ export default function VendorDashboard() {
       return [];
     })
     .then(setMenuItems)
-    .catch(console.error)
+    .catch(err => setError(err.message || "Failed to load inventory"))
     .finally(() => setLoading(false));
   }, []);
 
@@ -51,13 +52,19 @@ export default function VendorDashboard() {
     e.preventDefault();
     if (!vendor) return;
 
+    if (!newItemName.trim()) return toast.error("Name is required");
+    const price = parseFloat(newItemPrice);
+    if (isNaN(price) || price < 0) return toast.error("Price must be a valid positive number");
+    const stock = parseInt(newItemStock);
+    if (isNaN(stock) || stock < 0) return toast.error("Stock must be a valid non-negative number");
+
     try {
       const created = await fetchApi(`/vendors/${vendor.id}/menu`, {
         method: "POST",
         body: JSON.stringify({
-          name: newItemName,
-          price: parseFloat(newItemPrice),
-          stock_qty: parseInt(newItemStock),
+          name: newItemName.trim(),
+          price: price,
+          stock_qty: stock,
           is_available: true
         })
       });
@@ -89,6 +96,20 @@ export default function VendorDashboard() {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-ink/60 font-medium animate-pulse">Loading inventory...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4">
+        <div className="bg-status-error/10 text-status-error px-4 py-3 rounded-xl border border-status-error/20 max-w-md text-center">
+          <p className="font-semibold mb-1">Could not load inventory</p>
+          <p className="text-sm opacity-90">{error}</p>
+        </div>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Retry
+        </Button>
       </div>
     );
   }

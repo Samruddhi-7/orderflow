@@ -48,10 +48,18 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}): Pro
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  let response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    if (err.name === 'TypeError' || err.message === 'Failed to fetch') {
+      throw new Error("Network error: Unable to reach the server. Please check your connection.");
+    }
+    throw err;
+  }
 
   if (response.status === 401) {
     const refreshToken = getRefreshToken();
@@ -67,7 +75,11 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}): Pro
       return new Promise((resolve) => {
         refreshSubscribers.push((newToken) => {
           headers.set("Authorization", `Bearer ${newToken}`);
-          resolve(fetch(`${API_URL}${endpoint}`, { ...options, headers }).then(r => r.json()));
+          resolve(
+            fetch(`${API_URL}${endpoint}`, { ...options, headers })
+              .then(r => r.json())
+              .catch(() => { throw new Error("Network error: Unable to reach the server."); })
+          );
         });
       });
     }
@@ -95,12 +107,15 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}): Pro
         ...options,
         headers,
       });
-    } catch (err) {
+    } catch (err: any) {
       isRefreshing = false;
       refreshSubscribers = [];
       clearAuthToken();
       if (typeof window !== "undefined") {
         window.location.href = "/";
+      }
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        throw new Error("Network error: Unable to reach the server.");
       }
       throw new Error("Session expired. Please log in again.");
     }

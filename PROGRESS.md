@@ -40,7 +40,7 @@ Phase F — Responsive polish, accessibility, motion pass
 - [x] Phase 3 — Order lifecycle end-to-end, including concurrency/idempotency
 - [x] Phase 4 — WebSocket reliability
 - [x] Phase 5 — RBAC enforcement, both layers
-- [ ] Phase 6 — Error handling & edge cases
+- [x] Phase 6 — Error handling & edge cases
 - [ ] Phase 7 — Environment, CORS, and fresh-clone build check
 - [ ] Phase 8 — Static analysis, tests, and lint, clean run
 
@@ -69,3 +69,9 @@ Phase F — Responsive polish, accessibility, motion pass
   - Checked: Frontend correctly implements layout-level route guards (`layout.tsx`) that forcefully redirect users away from restricted modules (e.g., customers cannot load the `/vendor` or `/admin` routes). Thus, protected buttons and actions are never rendered for unauthorized roles.
   - Checked: Backend correctly enforces restrictions via `RequireRole` middleware on the Gin router. 
   - Tested: Wrote a direct API testing script (`test-rbac.js`) bypassing the UI and making raw HTTP requests. Confirmed that a customer token hitting vendor/admin endpoints receives a strictly enforced `403 Forbidden`, and a vendor token hitting admin endpoints similarly receives `403 Forbidden`. The API protection is solid.
+- **Phase 6 (Error handling & edge cases)**:
+  - Found: Unhandled promise rejections on the frontend when the backend crashes or goes offline (`TypeError: Failed to fetch`). Fixed: Patched `fetchApi` (`lib/api.ts`) to intercept network-level errors and throw a generic "Network error: Unable to reach the server." error. 
+  - Found: When API routes crashed or failed on initial load, pages rendered forever-loading states or broke entirely. Fixed: Implemented global `error` state handling across `page.tsx` components for Customer Dashboard, Vendor Dashboard, and Vendor Kanban UI. A structured error UI with a retry button now renders gracefully.
+  - Found: Vendor inventory creation form lacked strict front-end validation, allowing string/negative pricing and quantities to trigger 400 Bad Requests without a clean toast. Fixed: Added inline parsing and toast validation checks to prevent negative values.
+  - Checked: Empty states (empty kanban column, empty menu, empty order history) render a sensible empty container instead of throwing errors.
+  - Checked: Handled hydration warnings and unique key warnings correctly across Next.js `.map` loops.

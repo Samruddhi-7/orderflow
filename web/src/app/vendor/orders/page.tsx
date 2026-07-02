@@ -25,11 +25,12 @@ const COLUMNS = [
 export default function VendorOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadOrders = () => {
     fetchApi("/orders")
       .then(setOrders)
-      .catch(console.error)
+      .catch(err => setError(err.message || "Failed to load live orders"))
       .finally(() => setLoading(false));
   };
 
@@ -60,6 +61,20 @@ export default function VendorOrders() {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-ink/60 font-medium animate-pulse">Loading live orders...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
+        <div className="bg-status-error/10 text-status-error px-4 py-3 rounded-xl border border-status-error/20 max-w-md text-center">
+          <p className="font-semibold mb-1">Could not load live orders</p>
+          <p className="text-sm opacity-90">{error}</p>
+        </div>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Retry
+        </Button>
       </div>
     );
   }

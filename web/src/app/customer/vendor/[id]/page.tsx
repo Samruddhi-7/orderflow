@@ -24,20 +24,37 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [vendor, setVendor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   const { addItem, cart } = useCart();
 
   useEffect(() => {
     Promise.all([
-      fetchApi(`/vendors/${vendorId}`).then(setVendor).catch(console.error),
-      fetchApi(`/vendors/${vendorId}/menu`).then(setMenuItems).catch(console.error)
-    ]).finally(() => setLoading(false));
+      fetchApi(`/vendors/${vendorId}`).then(setVendor),
+      fetchApi(`/vendors/${vendorId}/menu`).then(setMenuItems)
+    ])
+    .catch(err => setError(err.message || "Failed to load menu"))
+    .finally(() => setLoading(false));
   }, [vendorId]);
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-ink/60 font-medium animate-pulse">Loading menu...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4">
+        <div className="bg-status-error/10 text-status-error px-4 py-3 rounded-xl border border-status-error/20 max-w-md text-center">
+          <p className="font-semibold mb-1">Could not load menu</p>
+          <p className="text-sm opacity-90">{error}</p>
+        </div>
+        <Link href="/customer">
+          <Button variant="outline">Back to Dashboard</Button>
+        </Link>
       </div>
     );
   }

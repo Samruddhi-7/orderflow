@@ -18,18 +18,37 @@ export default function CustomerDashboard() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
-      fetchApi("/vendors").then(setVendors).catch(console.error),
-      fetchApi("/orders").then(setOrders).catch(console.error)
-    ]).finally(() => setLoading(false));
+      fetchApi("/vendors").then(setVendors),
+      fetchApi("/orders").then(setOrders)
+    ])
+    .catch(err => {
+      setError(err.message || "Failed to load dashboard data.");
+    })
+    .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-ink/60 font-medium animate-pulse">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center gap-4">
+        <div className="bg-status-error/10 text-status-error px-4 py-3 rounded-xl border border-status-error/20 max-w-md text-center">
+          <p className="font-semibold mb-1">Could not load dashboard</p>
+          <p className="text-sm opacity-90">{error}</p>
+        </div>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          Retry
+        </Button>
       </div>
     );
   }
