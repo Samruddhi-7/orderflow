@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { fetchApi } from "../lib/api";
+import { fetchApi, setAuthToken } from "../lib/api";
 import { useAuth } from "../components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -41,6 +41,7 @@ export default function Home() {
       const payload = JSON.parse(atob(tokenParts[1]));
       const user = { id: payload.user_id, role: payload.role, email: payload.email };
 
+      setAuthToken(res.access_token, res.refresh_token);
       login(res.access_token, user);
 
       if (user.role === "customer") router.push("/customer");

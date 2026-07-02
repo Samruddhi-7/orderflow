@@ -8,36 +8,110 @@ export function getAuthToken() {
   return null;
 }
 
-export function setAuthToken(token: string) {
+export function getRefreshToken() {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("refreshToken");
+  }
+  return null;
+}
+
+export function setAuthToken(token: string, refreshToken?: string) {
   if (typeof window !== "undefined") {
     localStorage.setItem("accessToken", token);
+    if (refreshToken) {
+      localStorage.setItem("refreshToken", refreshToken);
+    }
   }
 }
 
 export function clearAuthToken() {
   if (typeof window !== "undefined") {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
   }
 }
 
-export async function fetchApi(endpoint: string, options: RequestInit = {}) {
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+function onRefreshed(token: string) {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+}
+
+export async function fetchApi(endpoint: string, options: RequestInit = {}): Promise<any> {
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
   
   headers.set("Content-Type", "application/json");
-  if (token) {
+  if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  let response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
   });
+
+  if (response.status === 401) {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) {
+      clearAuthToken();
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith('/auth')) {
+        window.location.href = "/";
+      }
+      throw new Error("Unauthorized");
+    }
+
+    if (isRefreshing) {
+      return new Promise((resolve) => {
+        refreshSubscribers.push((newToken) => {
+          headers.set("Authorization", `Bearer ${newToken}`);
+          resolve(fetch(`${API_URL}${endpoint}`, { ...options, headers }).then(r => r.json()));
+        });
+      });
+    }
+
+    isRefreshing = true;
+    try {
+      const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+
+      if (!refreshRes.ok) {
+        throw new Error("Session expired");
+      }
+
+      const refreshData = await refreshRes.json();
+      setAuthToken(refreshData.access_token, refreshData.refresh_token);
+      onRefreshed(refreshData.access_token);
+      isRefreshing = false;
+
+      // Retry original request
+      headers.set("Authorization", `Bearer ${refreshData.access_token}`);
+      response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    } catch (err) {
+      isRefreshing = false;
+      refreshSubscribers = [];
+      clearAuthToken();
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+      throw new Error("Session expired. Please log in again.");
+    }
+  }
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.error || `HTTP Error ${response.status}`);
   }
 
-  return response.json();
+  // Check if response is empty before parsing JSON
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
 }

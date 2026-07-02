@@ -30,13 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
-      // Decode JWT slightly or just fetch a protected route to see if it's valid.
-      // We don't have a /me route, but we can decode the JWT payload easily.
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
         setUser({
           id: payload.user_id,
-          email: payload.email || "", // Not strictly in payload, but good enough
+          email: payload.email || "",
           role: payload.role,
         });
       } catch (e) {
@@ -47,13 +45,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = (token: string, u: User) => {
-    setAuthToken(token);
+    // Note: setAuthToken is now handled in api.ts or page.tsx 
+    // We just set the user in context here.
     setUser(u);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const refreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
+    if (refreshToken) {
+      try {
+        await fetchApi("/auth/logout", {
+          method: "POST",
+          body: JSON.stringify({ refresh_token: refreshToken })
+        });
+      } catch (err) {
+        console.error("Logout error", err);
+      }
+    }
     clearAuthToken();
     setUser(null);
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
+    }
   };
 
   return (
