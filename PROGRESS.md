@@ -39,7 +39,7 @@ Phase F — Responsive polish, accessibility, motion pass
 - [x] Phase 2 — Auth flow end-to-end
 - [x] Phase 3 — Order lifecycle end-to-end, including concurrency/idempotency
 - [ ] Phase 4 — WebSocket reliability
-- [ ] Phase 5 — RBAC enforcement, both layers
+- [x] Phase 5 — RBAC enforcement, both layers
 - [ ] Phase 6 — Error handling & edge cases
 - [ ] Phase 7 — Environment, CORS, and fresh-clone build check
 - [ ] Phase 8 — Static analysis, tests, and lint, clean run
@@ -61,3 +61,7 @@ Phase F — Responsive polish, accessibility, motion pass
   - Tested: Concurrency prevention logic (Atomic DB decrement vs. Redis SETNX lock) is completely functional and prevents overselling.
   - Tested: Tested idempotency with the `Idempotency-Key` header end-to-end via the real API, confirming only one order is generated per unique key.
   - Fixed: Migrated `TestOrderConcurrency` to use `testcontainers-go` (just like `TestOrderService_Integration`), ensuring the integration test reliably runs in all environments (including GitHub Actions) and isn't silently skipped. Fixed local DB constraints preventing it from passing.
+- **Phase 5 (RBAC enforcement, both layers)**:
+  - Checked: Frontend correctly implements layout-level route guards (`layout.tsx`) that forcefully redirect users away from restricted modules (e.g., customers cannot load the `/vendor` or `/admin` routes). Thus, protected buttons and actions are never rendered for unauthorized roles.
+  - Checked: Backend correctly enforces restrictions via `RequireRole` middleware on the Gin router. 
+  - Tested: Wrote a direct API testing script (`test-rbac.js`) bypassing the UI and making raw HTTP requests. Confirmed that a customer token hitting vendor/admin endpoints receives a strictly enforced `403 Forbidden`, and a vendor token hitting admin endpoints similarly receives `403 Forbidden`. The API protection is solid.
