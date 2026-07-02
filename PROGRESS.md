@@ -33,3 +33,16 @@ Phase F — Responsive polish, accessibility, motion pass
 
 ### Next up
 🎉 Frontend Redesign Complete! 🎉
+
+## Integration & QA Audit
+- [ ] Phase 1 — Contract audit (does frontend match backend, endpoint by endpoint)
+- [ ] Phase 2 — Auth flow end-to-end
+- [ ] Phase 3 — Order lifecycle end-to-end, including concurrency/idempotency
+- [ ] Phase 4 — WebSocket reliability
+- [ ] Phase 5 — RBAC enforcement, both layers
+- [ ] Phase 6 — Error handling & edge cases
+- [ ] Phase 7 — Environment, CORS, and fresh-clone build check
+- [ ] Phase 8 — Static analysis, tests, and lint, clean run
+
+### Findings log
+(running list: what was found, where, how it was fixed, commit hash)
