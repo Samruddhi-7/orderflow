@@ -24,6 +24,7 @@ type VendorDetail = {
   name: string;
   address: string;
   is_open: boolean;
+  image_url: string | null;
 };
 
 export default function VendorMenu({ params }: { params: Promise<{ id: string }> }) {
@@ -86,6 +87,15 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
         </Link>
         
+        {vendor.image_url && (
+          <div className="relative w-full aspect-[3/1] overflow-hidden rounded-2xl mb-6">
+            <img
+              src={vendor.image_url}
+              alt={vendor.name}
+              className="object-cover w-full h-full"
+            />
+          </div>
+        )}
         <h2 className="font-display text-4xl font-bold">{vendor.name}</h2>
         <p className="text-ink/80 text-lg mt-2 max-w-2xl">{vendor.address}</p>
         <div className="mt-4">

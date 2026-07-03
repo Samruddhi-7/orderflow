@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Store } from "lucide-react";
 
 type CustomerOrder = {
   id: string;
@@ -20,6 +21,7 @@ type Vendor = {
   name: string;
   address: string;
   is_open: boolean;
+  image_url: string | null;
 };
 
 export default function CustomerDashboard() {
@@ -76,8 +78,21 @@ export default function CustomerDashboard() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {vendors.map(v => (
-              <Card key={v.id} className="flex flex-col">
-                <CardHeader>
+              <Card key={v.id} className="flex flex-col overflow-hidden">
+                {v.image_url ? (
+                  <div className="relative w-full aspect-[3/2] overflow-hidden">
+                    <img
+                      src={v.image_url}
+                      alt={v.name}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative w-full aspect-[3/2] bg-muted/20 flex items-center justify-center">
+                    <Store className="w-10 h-10 text-muted" />
+                  </div>
+                )}
+                <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-4">
                     <CardTitle className="line-clamp-1">{v.name}</CardTitle>
                     {v.is_open ? (
@@ -87,7 +102,7 @@ export default function CustomerDashboard() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="flex-1">
+                <CardContent className="flex-1 pt-0">
                   <p className="text-ink/70 text-sm line-clamp-2">
                     {v.address || "No address provided."}
                   </p>

@@ -12,16 +12,17 @@ import (
 )
 
 const createVendor = `-- name: CreateVendor :one
-INSERT INTO vendors (user_id, name, address, is_open)
-VALUES ($1, $2, $3, $4)
-RETURNING id, user_id, name, address, is_open, created_at
+INSERT INTO vendors (user_id, name, address, is_open, image_url)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, user_id, name, address, is_open, image_url, created_at
 `
 
 type CreateVendorParams struct {
-	UserID  pgtype.UUID `json:"user_id"`
-	Name    string      `json:"name"`
-	Address string      `json:"address"`
-	IsOpen  bool        `json:"is_open"`
+	UserID   pgtype.UUID `json:"user_id"`
+	Name     string      `json:"name"`
+	Address  string      `json:"address"`
+	IsOpen   bool        `json:"is_open"`
+	ImageUrl *string     `json:"image_url"`
 }
 
 func (q *Queries) CreateVendor(ctx context.Context, arg CreateVendorParams) (Vendor, error) {
@@ -30,6 +31,7 @@ func (q *Queries) CreateVendor(ctx context.Context, arg CreateVendorParams) (Ven
 		arg.Name,
 		arg.Address,
 		arg.IsOpen,
+		arg.ImageUrl,
 	)
 	var i Vendor
 	err := row.Scan(
@@ -38,13 +40,14 @@ func (q *Queries) CreateVendor(ctx context.Context, arg CreateVendorParams) (Ven
 		&i.Name,
 		&i.Address,
 		&i.IsOpen,
+		&i.ImageUrl,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getVendorByID = `-- name: GetVendorByID :one
-SELECT id, user_id, name, address, is_open, created_at FROM vendors
+SELECT id, user_id, name, address, is_open, image_url, created_at FROM vendors
 WHERE id = $1 LIMIT 1
 `
 
@@ -57,13 +60,14 @@ func (q *Queries) GetVendorByID(ctx context.Context, id pgtype.UUID) (Vendor, er
 		&i.Name,
 		&i.Address,
 		&i.IsOpen,
+		&i.ImageUrl,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getVendorByUserID = `-- name: GetVendorByUserID :one
-SELECT id, user_id, name, address, is_open, created_at FROM vendors
+SELECT id, user_id, name, address, is_open, image_url, created_at FROM vendors
 WHERE user_id = $1 LIMIT 1
 `
 
@@ -76,13 +80,14 @@ func (q *Queries) GetVendorByUserID(ctx context.Context, userID pgtype.UUID) (Ve
 		&i.Name,
 		&i.Address,
 		&i.IsOpen,
+		&i.ImageUrl,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listVendors = `-- name: ListVendors :many
-SELECT id, user_id, name, address, is_open, created_at FROM vendors
+SELECT id, user_id, name, address, is_open, image_url, created_at FROM vendors
 ORDER BY created_at DESC
 `
 
@@ -101,6 +106,7 @@ func (q *Queries) ListVendors(ctx context.Context) ([]Vendor, error) {
 			&i.Name,
 			&i.Address,
 			&i.IsOpen,
+			&i.ImageUrl,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -117,7 +123,7 @@ const updateVendorStatus = `-- name: UpdateVendorStatus :one
 UPDATE vendors
 SET is_open = $2
 WHERE id = $1
-RETURNING id, user_id, name, address, is_open, created_at
+RETURNING id, user_id, name, address, is_open, image_url, created_at
 `
 
 type UpdateVendorStatusParams struct {
@@ -134,6 +140,7 @@ func (q *Queries) UpdateVendorStatus(ctx context.Context, arg UpdateVendorStatus
 		&i.Name,
 		&i.Address,
 		&i.IsOpen,
+		&i.ImageUrl,
 		&i.CreatedAt,
 	)
 	return i, err

@@ -59,5 +59,6 @@ type Vendor struct {
 	Name      string             `db:"name" json:"name"`
 	Address   string             `db:"address" json:"address"`
 	IsOpen    bool               `db:"is_open" json:"is_open"`
+	ImageUrl  *string            `db:"image_url" json:"image_url"`
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"created_at"`
 }

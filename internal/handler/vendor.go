@@ -11,9 +11,10 @@ import (
 )
 
 type createVendorRequest struct {
-	Name    string `json:"name" binding:"required"`
-	Address string `json:"address" binding:"required"`
-	IsOpen  bool   `json:"is_open"`
+	Name     string `json:"name" binding:"required"`
+	Address  string `json:"address" binding:"required"`
+	IsOpen   bool   `json:"is_open"`
+	ImageUrl string `json:"image_url"`
 }
 
 func (h *Handler) createVendor(c *gin.Context) {
@@ -32,11 +33,17 @@ func (h *Handler) createVendor(c *gin.Context) {
 		return
 	}
 
+	var imageUrl *string
+	if req.ImageUrl != "" {
+		imageUrl = &req.ImageUrl
+	}
+
 	arg := db.CreateVendorParams{
-		UserID:  userID,
-		Name:    req.Name,
-		Address: req.Address,
-		IsOpen:  req.IsOpen,
+		UserID:   userID,
+		Name:     req.Name,
+		Address:  req.Address,
+		IsOpen:   req.IsOpen,
+		ImageUrl: imageUrl,
 	}
 
 	vendor, err := h.services.Vendor.CreateVendor(c.Request.Context(), arg)
