@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
-import { Package, Plus } from "lucide-react";
+import { Package, Plus, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/format";
 
 type Vendor = {
   id: string;
@@ -22,6 +23,7 @@ type MenuItem = {
   price: string;
   stock_qty: number;
   is_available: boolean;
+  image_url: string | null;
 };
 
 export default function VendorDashboard() {
@@ -34,6 +36,7 @@ export default function VendorDashboard() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
   const [newItemStock, setNewItemStock] = useState("");
+  const [newItemImageUrl, setNewItemImageUrl] = useState("");
 
   useEffect(() => {
     fetchApi<Vendor[]>("/vendors").then((vendors) => {
@@ -68,13 +71,15 @@ export default function VendorDashboard() {
           name: newItemName.trim(),
           price: price,
           stock_qty: stock,
-          is_available: true
+          is_available: true,
+          image_url: newItemImageUrl.trim() || undefined
         })
       });
       setMenuItems([...menuItems, created]);
       setNewItemName("");
       setNewItemPrice("");
       setNewItemStock("");
+      setNewItemImageUrl("");
       toast.success("Menu item created!");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to create item");
@@ -150,13 +155,17 @@ export default function VendorDashboard() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-ink/80">Price ($)</label>
+                    <label className="text-sm font-medium text-ink/80">Price (₹)</label>
                     <Input required value={newItemPrice} onChange={e => setNewItemPrice(e.target.value)} type="number" step="0.01" placeholder="9.99" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-ink/80">Initial Stock</label>
                     <Input required value={newItemStock} onChange={e => setNewItemStock(e.target.value)} type="number" placeholder="50" />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-ink/80">Image URL (optional)</label>
+                  <Input value={newItemImageUrl} onChange={e => setNewItemImageUrl(e.target.value)} placeholder="https://..." />
                 </div>
                 <Button type="submit" className="w-full mt-2">
                   Add Item
@@ -190,7 +199,7 @@ export default function VendorDashboard() {
                     {menuItems.map(item => (
                       <tr key={item.id} className="hover:bg-muted/5 transition-colors">
                         <td className="px-6 py-4 font-medium text-ink">{item.name}</td>
-                        <td className="px-6 py-4 text-ink/70">${item.price}</td>
+                        <td className="px-6 py-4 text-ink/70">{formatCurrency(item.price)}</td>
                         <td className="px-6 py-4 font-mono">{item.stock_qty}</td>
                         <td className="px-6 py-4">
                           <Badge variant={item.is_available ? 'success' : 'error'}>

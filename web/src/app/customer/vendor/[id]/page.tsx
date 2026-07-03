@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useCart } from "@/lib/cart";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ImageIcon } from "lucide-react";
+import { formatCurrency } from "../../../../lib/format";
 
 type MenuItem = {
   id: string;
@@ -15,6 +16,7 @@ type MenuItem = {
   price: string;
   stock_qty: number;
   is_available: boolean;
+  image_url: string | null;
 };
 
 type VendorDetail = {
@@ -103,27 +105,41 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
             <p className="text-ink/60 font-medium">No items available on the menu.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {menuItems.map(item => {
               const inCartCount = cart.items.find(i => i.id === item.id)?.quantity || 0;
               const isAvailable = item.is_available && item.stock_qty > 0 && vendor.is_open;
               
               return (
                 <Card key={item.id} className="flex flex-col justify-between">
-                  <CardHeader className="pb-2">
+                  {item.image_url && (
+                    <div className="relative w-full aspect-square overflow-hidden rounded-t-xl">
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                  {!item.image_url && (
+                    <div className="relative w-full aspect-square overflow-hidden rounded-t-xl bg-muted/20 flex items-center justify-center">
+                      <ImageIcon className="w-10 h-10 text-muted" />
+                    </div>
+                  )}
+                  <CardHeader className="pb-2 p-3">
                     <div className="flex justify-between items-start gap-4">
                       <CardTitle className="text-xl leading-tight">{item.name}</CardTitle>
                       <span className="font-mono font-medium shrink-0 bg-accent-soft px-2 py-1 rounded-md text-sm">
-                        ${Number(item.price).toFixed(2)}
+                        {formatCurrency(item.price)}
                       </span>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-3 pt-0">
                     {!isAvailable && (
-                      <p className="text-status-error text-sm font-medium mt-1">Out of stock</p>
+                      <p className="text-status-error text-sm font-medium">Out of stock</p>
                     )}
                   </CardContent>
-                  <CardFooter className="pt-0">
+                  <CardFooter className="p-3 pt-0">
                     <Button 
                       variant={isAvailable ? "primary" : "secondary"}
                       className="w-full"

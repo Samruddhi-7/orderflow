@@ -12,9 +12,9 @@ import (
 )
 
 const createMenuItem = `-- name: CreateMenuItem :one
-INSERT INTO menu_items (vendor_id, name, price, stock_qty, is_available)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, vendor_id, name, price, stock_qty, is_available
+INSERT INTO menu_items (vendor_id, name, price, stock_qty, is_available, image_url)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, vendor_id, name, price, stock_qty, is_available, image_url
 `
 
 type CreateMenuItemParams struct {
@@ -23,6 +23,7 @@ type CreateMenuItemParams struct {
 	Price       pgtype.Numeric `json:"price"`
 	StockQty    int32          `json:"stock_qty"`
 	IsAvailable bool           `json:"is_available"`
+	ImageUrl    *string        `json:"image_url"`
 }
 
 func (q *Queries) CreateMenuItem(ctx context.Context, arg CreateMenuItemParams) (MenuItem, error) {
@@ -32,6 +33,7 @@ func (q *Queries) CreateMenuItem(ctx context.Context, arg CreateMenuItemParams) 
 		arg.Price,
 		arg.StockQty,
 		arg.IsAvailable,
+		arg.ImageUrl,
 	)
 	var i MenuItem
 	err := row.Scan(
@@ -41,12 +43,13 @@ func (q *Queries) CreateMenuItem(ctx context.Context, arg CreateMenuItemParams) 
 		&i.Price,
 		&i.StockQty,
 		&i.IsAvailable,
+		&i.ImageUrl,
 	)
 	return i, err
 }
 
 const getMenuItemByID = `-- name: GetMenuItemByID :one
-SELECT id, vendor_id, name, price, stock_qty, is_available FROM menu_items
+SELECT id, vendor_id, name, price, stock_qty, is_available, image_url FROM menu_items
 WHERE id = $1 LIMIT 1
 `
 
@@ -60,12 +63,13 @@ func (q *Queries) GetMenuItemByID(ctx context.Context, id pgtype.UUID) (MenuItem
 		&i.Price,
 		&i.StockQty,
 		&i.IsAvailable,
+		&i.ImageUrl,
 	)
 	return i, err
 }
 
 const listMenuItemsByVendor = `-- name: ListMenuItemsByVendor :many
-SELECT id, vendor_id, name, price, stock_qty, is_available FROM menu_items
+SELECT id, vendor_id, name, price, stock_qty, is_available, image_url FROM menu_items
 WHERE vendor_id = $1
 ORDER BY name ASC
 LIMIT $2 OFFSET $3
@@ -93,6 +97,7 @@ func (q *Queries) ListMenuItemsByVendor(ctx context.Context, arg ListMenuItemsBy
 			&i.Price,
 			&i.StockQty,
 			&i.IsAvailable,
+			&i.ImageUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -108,7 +113,7 @@ const updateMenuItemPrice = `-- name: UpdateMenuItemPrice :one
 UPDATE menu_items
 SET price = $2
 WHERE id = $1
-RETURNING id, vendor_id, name, price, stock_qty, is_available
+RETURNING id, vendor_id, name, price, stock_qty, is_available, image_url
 `
 
 type UpdateMenuItemPriceParams struct {
@@ -126,6 +131,7 @@ func (q *Queries) UpdateMenuItemPrice(ctx context.Context, arg UpdateMenuItemPri
 		&i.Price,
 		&i.StockQty,
 		&i.IsAvailable,
+		&i.ImageUrl,
 	)
 	return i, err
 }
@@ -134,7 +140,7 @@ const updateMenuItemStock = `-- name: UpdateMenuItemStock :one
 UPDATE menu_items
 SET stock_qty = $2
 WHERE id = $1
-RETURNING id, vendor_id, name, price, stock_qty, is_available
+RETURNING id, vendor_id, name, price, stock_qty, is_available, image_url
 `
 
 type UpdateMenuItemStockParams struct {
@@ -152,6 +158,7 @@ func (q *Queries) UpdateMenuItemStock(ctx context.Context, arg UpdateMenuItemSto
 		&i.Price,
 		&i.StockQty,
 		&i.IsAvailable,
+		&i.ImageUrl,
 	)
 	return i, err
 }
@@ -160,7 +167,7 @@ const decrementMenuItemStock = `-- name: DecrementMenuItemStock :one
 UPDATE menu_items
 SET stock_qty = stock_qty - $2
 WHERE id = $1 AND stock_qty >= $2
-RETURNING id, vendor_id, name, price, stock_qty, is_available
+RETURNING id, vendor_id, name, price, stock_qty, is_available, image_url
 `
 
 type DecrementMenuItemStockParams struct {
@@ -178,6 +185,7 @@ func (q *Queries) DecrementMenuItemStock(ctx context.Context, arg DecrementMenuI
 		&i.Price,
 		&i.StockQty,
 		&i.IsAvailable,
+		&i.ImageUrl,
 	)
 	return i, err
 }

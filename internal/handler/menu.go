@@ -16,6 +16,7 @@ type createMenuItemRequest struct {
 	Price       float64 `json:"price" binding:"required,gt=0"`
 	StockQty    int32   `json:"stock_qty" binding:"required,min=0"`
 	IsAvailable *bool   `json:"is_available" binding:"required"`
+	ImageUrl    string  `json:"image_url"`
 }
 
 func (h *Handler) createMenuItem(c *gin.Context) {
@@ -57,12 +58,18 @@ func (h *Handler) createMenuItem(c *gin.Context) {
 		return
 	}
 
+	var imageUrl *string
+	if req.ImageUrl != "" {
+		imageUrl = &req.ImageUrl
+	}
+
 	arg := db.CreateMenuItemParams{
 		VendorID:    pgVendorID,
 		Name:        req.Name,
 		Price:       numericPrice,
 		StockQty:    req.StockQty,
 		IsAvailable: *req.IsAvailable,
+		ImageUrl:    imageUrl,
 	}
 
 	item, err := h.services.Menu.CreateMenuItem(c.Request.Context(), arg)

@@ -15,6 +15,7 @@ type MenuItem struct {
 	Price       pgtype.Numeric `db:"price" json:"price"`
 	StockQty    int32          `db:"stock_qty" json:"stock_qty"`
 	IsAvailable bool           `db:"is_available" json:"is_available"`
+	ImageUrl    *string        `db:"image_url" json:"image_url"`
 }
 
 type Order struct {

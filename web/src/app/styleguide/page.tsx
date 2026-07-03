@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
+import { formatCurrency } from "@/lib/format";
 
 export default function Styleguide() {
   const [quantity, setQuantity] = useState(1);
@@ -44,7 +45,7 @@ export default function Styleguide() {
           <div>
             <span className="text-sm text-muted mb-1 block">Mono (IBM Plex)</span>
             <p className="font-mono text-base tracking-tight">
-              Order #10294 • $24.50
+              Order #10294 • {formatCurrency(24.50)}
             </p>
           </div>
         </div>
@@ -108,7 +109,7 @@ export default function Styleguide() {
               </p>
             </CardContent>
             <CardFooter className="justify-between">
-              <span className="font-mono font-medium">$4.99 Delivery</span>
+              <span className="font-mono font-medium">{formatCurrency(4.99)} Delivery</span>
               <Button variant="secondary" size="sm">
                 View Menu
               </Button>

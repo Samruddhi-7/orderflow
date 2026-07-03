@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use, useRef } from "react";
 import { fetchApi, WS_URL } from "../../../../lib/api";
+import { formatCurrency } from "../../../../lib/format";
 import Link from "next/link";
 import { Timeline, OrderStatus } from "@/components/ui/Timeline";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -130,7 +131,7 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
               <div className="space-y-3">
                 <div className="flex justify-between border-b border-muted/30 pb-3">
                   <span className="text-ink/70">Total Amount</span>
-                  <span className="font-mono font-bold">${order.total_amount}</span>
+                  <span className="font-mono font-bold">{formatCurrency(order.total_amount)}</span>
                 </div>
                 <div className="flex justify-between border-b border-muted/30 pb-3">
                   <span className="text-ink/70">Date Placed</span>

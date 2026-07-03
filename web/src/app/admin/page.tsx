@@ -5,6 +5,7 @@ import { fetchApi } from "../../lib/api";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Users, Store, DollarSign, Activity } from "lucide-react";
+import { formatCurrency } from "../../lib/format";
 
 type Analytics = {
   total_orders: number;
@@ -94,7 +95,7 @@ export default function AdminDashboard() {
               <div className="flex justify-between items-start">
                 <div className="space-y-2">
                   <p className="text-sm font-mono text-ink/60 uppercase tracking-wider">Total Revenue</p>
-                  <p className="font-display text-4xl font-bold">${analytics.total_revenue}</p>
+                  <p className="font-display text-4xl font-bold">{formatCurrency(analytics.total_revenue)}</p>
                 </div>
                 <div className="p-3 bg-indigo-400/10 rounded-xl">
                   <DollarSign className="w-6 h-6 text-indigo-500" />

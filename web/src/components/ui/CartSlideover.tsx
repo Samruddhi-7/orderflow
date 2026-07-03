@@ -4,19 +4,30 @@ import React, { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { Button } from "./Button";
 import { QuantityStepper } from "./QuantityStepper";
-import { ShoppingBag, X } from "lucide-react";
+import { ShoppingBag, X, QrCode } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { formatCurrency } from "@/lib/format";
 
 export function CartSlideover() {
   const { cart, updateQuantity, removeItem, totalPrice, totalItems, clearCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showUpiModal, setShowUpiModal] = useState(false);
+  const [upiPaid, setUpiPaid] = useState(false);
   const router = useRouter();
 
   const handleCheckout = async () => {
     if (!cart.vendorId || cart.items.length === 0) return;
+    
+    // Show UPI payment modal before proceeding
+    setShowUpiModal(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    setUpiPaid(true);
+    setShowUpiModal(false);
     
     setError("");
     setIsSubmitting(true);
@@ -90,7 +101,7 @@ export function CartSlideover() {
                     <div key={item.id} className="flex gap-4 items-start">
                       <div className="flex-1">
                         <h4 className="font-bold text-ink">{item.name}</h4>
-                        <p className="font-mono text-sm mt-1">${Number(item.price).toFixed(2)}</p>
+                        <p className="font-mono text-sm mt-1">{formatCurrency(item.price)}</p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <QuantityStepper 
@@ -120,7 +131,7 @@ export function CartSlideover() {
                 
                 <div className="flex items-center justify-between mb-4">
                   <span className="font-medium text-ink/80">Total</span>
-                  <span className="font-mono text-2xl font-bold">${totalPrice.toFixed(2)}</span>
+                  <span className="font-mono text-2xl font-bold">{formatCurrency(totalPrice)}</span>
                 </div>
                 
                 <Button 
@@ -129,8 +140,45 @@ export function CartSlideover() {
                   onClick={handleCheckout}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Processing..." : "Checkout"}
+                  {isSubmitting ? "Processing..." : "Place Order"}
                 </Button>
+              </div>
+            )}
+
+            {/* UPI Payment Modal */}
+            {showUpiModal && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 backdrop-blur-sm">
+                <div className="bg-bg rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-6">
+                  <div className="text-center space-y-3">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10">
+                      <QrCode className="w-8 h-8 text-accent" />
+                    </div>
+                    <h3 className="font-display text-2xl font-bold">UPI Payment</h3>
+                    <p className="text-ink/70 text-sm">Scan the QR or tap below to simulate payment</p>
+                  </div>
+                  
+                  {/* Mock QR placeholder */}
+                  <div className="aspect-square max-w-[200px] mx-auto bg-muted/30 rounded-xl border-2 border-dashed border-muted/50 flex items-center justify-center">
+                    <div className="text-center text-muted">
+                      <QrCode className="w-16 h-16 mx-auto mb-2" />
+                      <span className="text-xs font-mono">Mock UPI QR</span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center font-mono text-lg font-bold">
+                    {formatCurrency(totalPrice)}
+                  </div>
+                  
+                  <Button className="w-full" size="lg" onClick={handlePaymentSuccess}>
+                    Simulate Payment Success
+                  </Button>
+                  <button
+                    onClick={() => setShowUpiModal(false)}
+                    className="w-full text-sm text-ink/60 hover:text-ink transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>

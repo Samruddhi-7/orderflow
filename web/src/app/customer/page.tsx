@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchApi } from "../../lib/api";
+import { formatCurrency } from "../../lib/format";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -61,7 +62,7 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="space-y-12 pb-12">
+    <div className="space-y-8 pb-12">
       <section>
         <div className="mb-6">
           <h2 className="font-display text-3xl font-bold">Restaurants</h2>
@@ -73,7 +74,7 @@ export default function CustomerDashboard() {
             <p className="text-ink/60 font-medium">No restaurants are currently available.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {vendors.map(v => (
               <Card key={v.id} className="flex flex-col">
                 <CardHeader>
@@ -141,7 +142,7 @@ export default function CustomerDashboard() {
                       <div className="flex items-end justify-between">
                         <div>
                           <p className="text-sm text-ink/60 mb-1">Total</p>
-                          <p className="font-mono text-xl font-medium">${o.total_amount}</p>
+                          <p className="font-mono text-xl font-medium">{formatCurrency(o.total_amount)}</p>
                         </div>
                         <span className="text-accent text-sm font-medium">Track &rarr;</span>
                       </div>
