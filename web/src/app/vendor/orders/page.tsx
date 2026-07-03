@@ -5,6 +5,7 @@ import { fetchApi } from "../../../lib/api";
 import { Card, CardHeader, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { formatCurrency } from "../../../lib/format";
 import { Clock, ChefHat, Truck, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -115,7 +116,7 @@ export default function VendorOrders() {
                         <div className="flex justify-between items-start">
                           <span className="font-mono text-sm font-bold tracking-tight">#{order.id.substring(0,8)}</span>
                           <span className="font-mono text-sm font-medium bg-accent-soft/50 px-2 py-0.5 rounded text-ink">
-                            ${order.total_amount}
+                            {formatCurrency(Number(order.total_amount))}
                           </span>
                         </div>
                         <p className="text-xs text-ink/60 mt-1">
