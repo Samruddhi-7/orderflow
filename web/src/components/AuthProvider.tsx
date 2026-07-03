@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { getAuthToken, clearAuthToken, setAuthToken, fetchApi } from "../lib/api";
+import { createContext, useContext, useState } from "react";
+import { getAuthToken, clearAuthToken, fetchApi } from "../lib/api";
 
 type User = {
   id: string;
@@ -24,25 +24,24 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null;
     const token = getAuthToken();
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        setUser({
+        return {
           id: payload.user_id,
           email: payload.email || "",
           role: payload.role,
-        });
-      } catch (e) {
+        };
+      } catch {
         clearAuthToken();
       }
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
+  const [loading] = useState(false);
 
   const login = (token: string, u: User) => {
     // Note: setAuthToken is now handled in api.ts or page.tsx 
