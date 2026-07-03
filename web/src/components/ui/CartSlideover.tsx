@@ -5,6 +5,7 @@ import { useCart } from "@/lib/cart";
 import { Button } from "./Button";
 import { QuantityStepper } from "./QuantityStepper";
 import { ShoppingBag, X, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { fetchApi } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/format";
@@ -157,12 +158,22 @@ export function CartSlideover() {
                     <p className="text-ink/70 text-sm">Scan the QR or tap below to simulate payment</p>
                   </div>
                   
-                  {/* Mock QR placeholder */}
-                  <div className="aspect-square max-w-[200px] mx-auto bg-muted/30 rounded-xl border-2 border-dashed border-muted/50 flex items-center justify-center">
-                    <div className="text-center text-muted">
-                      <QrCode className="w-16 h-16 mx-auto mb-2" />
-                      <span className="text-xs font-mono">Mock UPI QR</span>
+                  {/* Real QR Code */}
+                  <div className="flex justify-center">
+                    <div className="bg-white p-3 rounded-xl shadow-sm">
+                      <QRCodeSVG
+                        value={`upi://pay?pa=orderflow@mockupi&am=${totalPrice}&cu=INR`}
+                        size={200}
+                        level="M"
+                      />
                     </div>
+                  </div>
+                  
+                  {/* UPI App Indicators */}
+                  <div className="flex justify-center gap-2">
+                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-accent/10 text-accent">GPay</span>
+                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-accent/10 text-accent">PhonePe</span>
+                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-accent/10 text-accent">Paytm</span>
                   </div>
                   
                   <div className="text-center font-mono text-lg font-bold">
