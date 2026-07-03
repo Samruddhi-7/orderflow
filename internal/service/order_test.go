@@ -184,6 +184,7 @@ func setupSchema(t *testing.T, pool *pgxpool.Pool) {
 		price NUMERIC(10, 2) NOT NULL,
 		stock_qty INTEGER NOT NULL DEFAULT 0,
 		is_available BOOLEAN NOT NULL DEFAULT true,
+		image_url TEXT,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);
