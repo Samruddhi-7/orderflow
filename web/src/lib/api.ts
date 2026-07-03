@@ -39,7 +39,7 @@ function onRefreshed(token: string) {
   refreshSubscribers = [];
 }
 
-export async function fetchApi(endpoint: string, options: RequestInit = {}): Promise<any> {
+export async function fetchApi<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
   
@@ -54,12 +54,12 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}): Pro
       ...options,
       headers,
     });
-  } catch (err: any) {
-    if (err.name === 'TypeError' || err.message === 'Failed to fetch') {
-      throw new Error("Network error: Unable to reach the server. Please check your connection.");
+    } catch (err: unknown) {
+      if (err instanceof Error && (err.name === 'TypeError' || err.message === 'Failed to fetch')) {
+        throw new Error("Network error: Unable to reach the server. Please check your connection.");
+      }
+      throw err;
     }
-    throw err;
-  }
 
   if (response.status === 401) {
     const refreshToken = getRefreshToken();
@@ -107,14 +107,14 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}): Pro
         ...options,
         headers,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       isRefreshing = false;
       refreshSubscribers = [];
       clearAuthToken();
       if (typeof window !== "undefined") {
         window.location.href = "/";
       }
-      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+      if (err instanceof Error && (err.message === 'Failed to fetch' || err.name === 'TypeError')) {
         throw new Error("Network error: Unable to reach the server.");
       }
       throw new Error("Session expired. Please log in again.");
@@ -128,5 +128,5 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}): Pro
 
   // Check if response is empty before parsing JSON
   const text = await response.text();
-  return text ? JSON.parse(text) : {};
+  return text ? (JSON.parse(text) as T) : ({} as T);
 }
