@@ -57,6 +57,11 @@ func main() {
 	}
 	log.Println("Successfully connected to PostgreSQL database.")
 
+	// Run pending migrations
+	if err := runMigrations(ctx, dbPool, "migrations"); err != nil {
+		log.Fatalf("Migration failed: %v\n", err)
+	}
+
 	// 3. Redis Connection
 	cacheService, err := cache.NewRedisCache(redisAddr)
 	if err != nil {
