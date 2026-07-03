@@ -7,7 +7,6 @@ import { QuantityStepper } from "./QuantityStepper";
 import { ShoppingBag, X } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 export function CartSlideover() {
   const { cart, updateQuantity, removeItem, totalPrice, totalItems, clearCart } = useCart();
@@ -25,7 +24,7 @@ export function CartSlideover() {
       const idempotencyKey = "client-key-" + Date.now();
       const items = cart.items.map(i => ({ menu_item_id: i.id, qty: i.quantity }));
       
-      const res = await fetchApi("/orders", {
+      const res = await fetchApi<{ id: string; order_id?: string }>("/orders", {
         method: "POST",
         headers: { "Idempotency-Key": idempotencyKey },
         body: JSON.stringify({
@@ -38,8 +37,8 @@ export function CartSlideover() {
       clearCart();
       setIsOpen(false);
       router.push(`/customer/order/${res.order_id || res.id}`);
-    } catch (err: any) {
-      setError(err.message || "Checkout failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Checkout failed");
     } finally {
       setIsSubmitting(false);
     }

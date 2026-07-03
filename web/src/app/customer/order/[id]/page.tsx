@@ -8,18 +8,25 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
+type OrderDetail = {
+  id: string;
+  status: string;
+  total_amount: string;
+  created_at: string;
+};
+
 export default function OrderTracking({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const orderId = unwrappedParams.id;
   
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderDetail | null>(null);
   const [status, setStatus] = useState<OrderStatus>("placed");
   const [wsStatus, setWsStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [loading, setLoading] = useState(true);
   const statusRef = useRef<OrderStatus>("placed");
 
   useEffect(() => {
-    fetchApi(`/orders/${orderId}`)
+    fetchApi<OrderDetail>(`/orders/${orderId}`)
       .then(data => {
         setOrder(data);
         setStatus(data.status as OrderStatus);
@@ -44,7 +51,6 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
         try {
           const data = JSON.parse(event.data);
           if (data.status && data.status !== statusRef.current) {
-            const oldStatus = statusRef.current;
             setStatus(data.status as OrderStatus);
             statusRef.current = data.status as OrderStatus;
             
@@ -58,7 +64,7 @@ export default function OrderTracking({ params }: { params: Promise<{ id: string
             
             toast.success(statusNames[data.status] || `Status updated to ${data.status.replace(/_/g, ' ')}`);
           }
-        } catch (e) {}
+        } catch {}
       };
 
       ws.onclose = () => {

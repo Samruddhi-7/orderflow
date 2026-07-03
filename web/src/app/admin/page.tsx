@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchApi } from "../../lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Users, Store, DollarSign, Activity } from "lucide-react";
 
@@ -27,8 +27,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetchApi("/admin/analytics"),
-      fetchApi("/admin/vendors")
+      fetchApi<Analytics>("/admin/analytics"),
+      fetchApi<Vendor[]>("/admin/vendors")
     ])
     .then(([a, v]) => {
       setAnalytics(a);

@@ -17,12 +17,19 @@ type MenuItem = {
   is_available: boolean;
 };
 
+type VendorDetail = {
+  id: string;
+  name: string;
+  address: string;
+  is_open: boolean;
+};
+
 export default function VendorMenu({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const vendorId = unwrappedParams.id;
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [vendor, setVendor] = useState<any>(null);
+  const [vendor, setVendor] = useState<VendorDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -30,8 +37,8 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
 
   useEffect(() => {
     Promise.all([
-      fetchApi(`/vendors/${vendorId}`).then(setVendor),
-      fetchApi(`/vendors/${vendorId}/menu`).then(setMenuItems)
+      fetchApi<VendorDetail>(`/vendors/${vendorId}`).then(setVendor),
+      fetchApi<MenuItem[]>(`/vendors/${vendorId}/menu`).then(setMenuItems)
     ])
     .catch(err => setError(err.message || "Failed to load menu"))
     .finally(() => setLoading(false));

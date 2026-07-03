@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchApi } from "../../../lib/api";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/Card";
+import { Card, CardHeader, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Clock, ChefHat, Truck, Check, X } from "lucide-react";
@@ -28,7 +28,7 @@ export default function VendorOrders() {
   const [error, setError] = useState<string | null>(null);
 
   const loadOrders = () => {
-    fetchApi("/orders")
+    fetchApi<Order[]>("/orders")
       .then(setOrders)
       .catch(err => setError(err.message || "Failed to load live orders"))
       .finally(() => setLoading(false));
@@ -48,8 +48,8 @@ export default function VendorOrders() {
       });
       toast.success(`Order status updated to ${newStatus.replace(/_/g, " ")}`);
       loadOrders();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update order status");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update order status");
     }
   };
 

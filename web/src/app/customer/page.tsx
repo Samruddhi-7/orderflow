@@ -7,6 +7,13 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
+type CustomerOrder = {
+  id: string;
+  status: string;
+  total_amount: string;
+  created_at: string;
+};
+
 type Vendor = {
   id: string;
   name: string;
@@ -16,14 +23,14 @@ type Vendor = {
 
 export default function CustomerDashboard() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
-      fetchApi("/vendors").then(setVendors),
-      fetchApi("/orders").then(setOrders)
+      fetchApi<Vendor[]>("/vendors").then(setVendors),
+      fetchApi<CustomerOrder[]>("/orders").then(setOrders)
     ])
     .catch(err => {
       setError(err.message || "Failed to load dashboard data.");

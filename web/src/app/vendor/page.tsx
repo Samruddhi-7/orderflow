@@ -36,10 +36,10 @@ export default function VendorDashboard() {
   const [newItemStock, setNewItemStock] = useState("");
 
   useEffect(() => {
-    fetchApi("/vendors").then((vendors: Vendor[]) => {
+    fetchApi<Vendor[]>("/vendors").then((vendors) => {
       if (vendors.length > 0) {
         setVendor(vendors[0]);
-        return fetchApi(`/vendors/${vendors[0].id}/menu`);
+        return fetchApi<MenuItem[]>(`/vendors/${vendors[0].id}/menu`);
       }
       return [];
     })
@@ -59,7 +59,7 @@ export default function VendorDashboard() {
     if (isNaN(stock) || stock < 0) return toast.error("Stock must be a valid non-negative number");
 
     try {
-      const created = await fetchApi(`/vendors/${vendor.id}/menu`, {
+      const created = await fetchApi<MenuItem>(`/vendors/${vendor.id}/menu`, {
         method: "POST",
         body: JSON.stringify({
           name: newItemName.trim(),
@@ -73,22 +73,22 @@ export default function VendorDashboard() {
       setNewItemPrice("");
       setNewItemStock("");
       toast.success("Menu item created!");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create item");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to create item");
     }
   };
 
   const handleUpdateStock = async (itemId: string, newStock: number) => {
     if (!vendor) return;
     try {
-      const updated = await fetchApi(`/vendors/${vendor.id}/menu/${itemId}/stock`, {
+      const updated = await fetchApi<MenuItem>(`/vendors/${vendor.id}/menu/${itemId}/stock`, {
         method: "PATCH",
         body: JSON.stringify({ stock_qty: newStock })
       });
       setMenuItems(menuItems.map(m => m.id === itemId ? updated : m));
       toast.success("Stock updated");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update stock");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to update stock");
     }
   };
 

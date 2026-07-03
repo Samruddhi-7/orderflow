@@ -32,7 +32,7 @@ export default function Home() {
         });
       }
       
-      const res = await fetchApi("/auth/login", {
+      const res = await fetchApi<{ access_token: string; refresh_token: string }>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
@@ -48,8 +48,8 @@ export default function Home() {
       else if (user.role === "vendor") router.push("/vendor/orders");
       else if (user.role === "admin") router.push("/admin");
 
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
