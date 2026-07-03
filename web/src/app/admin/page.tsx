@@ -32,7 +32,7 @@ export default function AdminDashboard() {
     ])
     .then(([a, v]) => {
       setAnalytics(a);
-      setVendors(v);
+      setVendors(v ?? []);
     })
     .catch(console.error)
     .finally(() => setLoading(false));

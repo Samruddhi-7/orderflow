@@ -38,7 +38,7 @@ export default function VendorMenu({ params }: { params: Promise<{ id: string }>
   useEffect(() => {
     Promise.all([
       fetchApi<VendorDetail>(`/vendors/${vendorId}`).then(setVendor),
-      fetchApi<MenuItem[]>(`/vendors/${vendorId}/menu`).then(setMenuItems)
+      fetchApi<MenuItem[]>(`/vendors/${vendorId}/menu`).then(data => setMenuItems(data ?? []))
     ])
     .catch(err => setError(err.message || "Failed to load menu"))
     .finally(() => setLoading(false));

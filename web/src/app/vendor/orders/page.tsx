@@ -29,7 +29,7 @@ export default function VendorOrders() {
 
   const loadOrders = () => {
     fetchApi<Order[]>("/orders")
-      .then(setOrders)
+      .then(data => setOrders(data ?? []))
       .catch(err => setError(err.message || "Failed to load live orders"))
       .finally(() => setLoading(false));
   };

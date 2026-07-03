@@ -37,7 +37,10 @@ export default function VendorDashboard() {
 
   useEffect(() => {
     fetchApi<Vendor[]>("/vendors").then((vendors) => {
-      if (vendors.length > 0) {
+      const data = vendors ?? [];
+      if (data.length > 0) {
+        setVendor(data[0]);
+        return fetchApi<MenuItem[]>(`/vendors/${data[0].id}/menu`);
         setVendor(vendors[0]);
         return fetchApi<MenuItem[]>(`/vendors/${vendors[0].id}/menu`);
       }

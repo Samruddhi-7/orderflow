@@ -29,8 +29,8 @@ export default function CustomerDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetchApi<Vendor[]>("/vendors").then(setVendors),
-      fetchApi<CustomerOrder[]>("/orders").then(setOrders)
+      fetchApi<Vendor[]>("/vendors").then(data => setVendors(data ?? [])),
+      fetchApi<CustomerOrder[]>("/orders").then(data => setOrders(data ?? []))
     ])
     .catch(err => {
       setError(err.message || "Failed to load dashboard data.");
