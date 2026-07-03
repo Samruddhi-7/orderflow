@@ -173,6 +173,7 @@ func setupSchema(t *testing.T, pool *pgxpool.Pool) {
 		name VARCHAR(255) NOT NULL,
 		address VARCHAR(255) NOT NULL DEFAULT '',
 		is_open BOOLEAN NOT NULL DEFAULT false,
+		image_url TEXT,
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);
