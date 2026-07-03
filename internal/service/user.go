@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/Samruddhi-7/orderflow/internal/repository/db"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func (s *userService) GetUserByID(ctx context.Context, id string) (db.User, error) {

@@ -75,20 +75,20 @@ func (s *orderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 				if err != nil || !locked {
 					return fmt.Errorf("could not acquire lock for item %s, please try again", itemIDStr)
 				}
-				
+
 				// Ensure lock is released at the end of the item processing
 				defer func() {
 					if err := s.cache.Delete(ctx, lockKey); err != nil {
 						log.Printf("failed to release redis lock %s: %v", lockKey, err)
 					}
 				}()
-				
+
 				// After acquiring lock, we still need to check if enough stock exists and update it.
 				// Since we hold the lock, we can safely read and update.
 				if menuItem.StockQty < qty {
 					return fmt.Errorf("not enough stock for item %s", itemIDStr)
 				}
-				
+
 				_, err = q.UpdateMenuItemStock(ctx, db.UpdateMenuItemStockParams{
 					ID:       itemUUID,
 					StockQty: menuItem.StockQty - qty,
@@ -134,9 +134,9 @@ func (s *orderService) CreateOrder(ctx context.Context, req CreateOrderRequest) 
 		for itemIDStr, qty := range req.Items {
 			var itemUUID pgtype.UUID
 			_ = itemUUID.Scan(itemIDStr)
-			
+
 			menuItem, _ := q.GetMenuItemByID(ctx, itemUUID)
-			
+
 			_, err = q.CreateOrderItem(ctx, db.CreateOrderItemParams{
 				OrderID:          order.ID,
 				MenuItemID:       itemUUID,
@@ -206,6 +206,6 @@ func (s *orderService) UpdateOrderStatus(ctx context.Context, orderID string, st
 		ID:     uuid,
 		Status: status,
 	}
-	
+
 	return s.store.UpdateOrderStatus(ctx, arg)
 }

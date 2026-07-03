@@ -50,7 +50,7 @@ func (h *Handler) createMenuItem(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid price format"})
 		return
 	}
-	
+
 	var pgVendorID pgtype.UUID
 	if err := pgVendorID.Scan(vendorID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid vendor id"})
@@ -76,10 +76,10 @@ func (h *Handler) createMenuItem(c *gin.Context) {
 
 func (h *Handler) listMenuItems(c *gin.Context) {
 	vendorID := c.Param("vendor_id")
-	
+
 	limit := int32(10) // default limit
 	page := int32(1)   // default page
-	
+
 	if l := util.ParseQueryInt32(c.Query("limit"), 10); l > 0 && l <= 100 {
 		limit = l
 	}
@@ -87,7 +87,7 @@ func (h *Handler) listMenuItems(c *gin.Context) {
 		page = p
 	}
 	offset := (page - 1) * limit
-	
+
 	items, err := h.services.Menu.ListMenuItemsByVendor(c.Request.Context(), vendorID, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -128,19 +128,19 @@ func (h *Handler) updateMenuStock(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only update your own vendor's menu"})
 		return
 	}
-	
+
 	// Verify the item belongs to the vendor
 	item, err := h.services.Menu.GetMenuItemByID(c.Request.Context(), itemID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "menu item not found"})
 		return
 	}
-	
+
 	var itemVendorID string
 	if itemVendorIDBytes := item.VendorID.Bytes; len(itemVendorIDBytes) == 16 {
 		itemVendorID = util.UUIDString(itemVendorIDBytes)
 	}
-	
+
 	if itemVendorID != vendorID {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "menu item does not belong to this vendor"})
 		return
@@ -186,19 +186,19 @@ func (h *Handler) updateMenuPrice(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "you can only update your own vendor's menu"})
 		return
 	}
-	
+
 	// Verify the item belongs to the vendor
 	item, err := h.services.Menu.GetMenuItemByID(c.Request.Context(), itemID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "menu item not found"})
 		return
 	}
-	
+
 	var itemVendorID string
 	if itemVendorIDBytes := item.VendorID.Bytes; len(itemVendorIDBytes) == 16 {
 		itemVendorID = util.UUIDString(itemVendorIDBytes)
 	}
-	
+
 	if itemVendorID != vendorID {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "menu item does not belong to this vendor"})
 		return

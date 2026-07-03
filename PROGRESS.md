@@ -75,6 +75,13 @@ Phase F — Responsive polish, accessibility, motion pass
   - Found: Vendor inventory creation form lacked strict front-end validation, allowing string/negative pricing and quantities to trigger 400 Bad Requests without a clean toast. Fixed: Added inline parsing and toast validation checks to prevent negative values.
   - Checked: Empty states (empty kanban column, empty menu, empty order history) render a sensible empty container instead of throwing errors.
   - Checked: Handled hydration warnings and unique key warnings correctly across Next.js `.map` loops.
+## Maintenance / Fixes
+- fix(api): make fetchApi generic and fix catch types (`5b8b9f4`)
+- fix(web): propagate real types to all fetchApi call sites (`0eba44f`)
+- fix(web): replace setState-in-useEffect with lazy initializers (`fd40499`)
+- chore(web): remove dead code and unused imports (included in tasks 1–3 commits)
+- style(go): run gofmt -w on all Go source files (`04038b5`)
+
 - **Phase 7 (Environment & CORS)**:
   - Checked: \docker-compose up -d --build\ successfully spins up Postgres, Redis, and the Go API without any issues. The database schema migrations are correctly handled (auto-migrated or pre-existing in the volume/entrypoint) as all tables exist on boot.
   - Found: \.env.example\ contained unused token duration configurations and an unused \REFRESH_JWT_SECRET\, and was missing \ALLOWED_ORIGIN\. Fixed: Cleaned up \.env.example\ and \docker-compose.yml\ to perfectly match the environment variables actually parsed in \cmd/api/main.go\.

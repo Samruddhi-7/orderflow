@@ -36,7 +36,7 @@ func (s *vendorService) CreateVendor(ctx context.Context, arg db.CreateVendorPar
 	if err != nil {
 		return db.Vendor{}, err
 	}
-	
+
 	// Invalidate the list of vendors
 	_ = s.cache.Delete(ctx, "vendors:list")
 	return vendor, nil

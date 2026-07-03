@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/Samruddhi-7/orderflow/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/Samruddhi-7/orderflow/internal/service"
 )
 
 type registerRequest struct {

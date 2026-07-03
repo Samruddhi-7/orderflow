@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Samruddhi-7/orderflow/internal/util"
+	"github.com/gin-gonic/gin"
 )
 
 const (
-	AuthorizationHeaderKey = "authorization"
+	AuthorizationHeaderKey  = "authorization"
 	AuthorizationTypeBearer = "bearer"
 	AuthorizationPayloadKey = "authorization_payload"
 )
@@ -111,10 +111,10 @@ type ipLimiter struct {
 
 // RateLimiter implements a thread-safe in-memory Token Bucket rate limiter
 type RateLimiter struct {
-	mu     sync.Mutex
-	ips    map[string]*ipLimiter
-	rate   float64 // Tokens refilled per second
-	burst  float64 // Maximum bucket capacity
+	mu    sync.Mutex
+	ips   map[string]*ipLimiter
+	rate  float64 // Tokens refilled per second
+	burst float64 // Maximum bucket capacity
 }
 
 // NewRateLimiter instantiates a new RateLimiter

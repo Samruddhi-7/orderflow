@@ -24,7 +24,7 @@ func (h *Handler) createVendor(c *gin.Context) {
 	}
 
 	payload := c.MustGet(middleware.AuthorizationPayloadKey).(*util.UserClaims)
-	
+
 	// Create UUID for the user id from token
 	var userID pgtype.UUID
 	if err := userID.Scan(payload.UserID); err != nil {
@@ -51,7 +51,7 @@ func (h *Handler) createVendor(c *gin.Context) {
 
 func (h *Handler) getVendor(c *gin.Context) {
 	id := c.Param("vendor_id")
-	
+
 	vendor, err := h.services.Vendor.GetVendorByID(c.Request.Context(), id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "vendor not found"})

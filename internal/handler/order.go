@@ -111,7 +111,7 @@ func (h *Handler) createOrder(c *gin.Context) {
 
 func (h *Handler) getOrder(c *gin.Context) {
 	orderID := c.Param("id")
-	
+
 	order, err := h.services.Order.GetOrder(c.Request.Context(), orderID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
@@ -119,7 +119,7 @@ func (h *Handler) getOrder(c *gin.Context) {
 	}
 
 	payload := c.MustGet(middleware.AuthorizationPayloadKey).(*util.UserClaims)
-	
+
 	// Role scoping: only customer or vendor involved in the order can view it
 	var customerIDStr string
 	if len(order.CustomerID.Bytes) == 16 {
@@ -176,7 +176,7 @@ func (h *Handler) listOrders(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "vendor profile not found"})
 			return
 		}
-		
+
 		var vendorIDStr string
 		if len(vendor.ID.Bytes) == 16 {
 			vendorIDStr = util.UUIDString(vendor.ID.Bytes)
@@ -200,7 +200,7 @@ type updateOrderStatusRequest struct {
 
 func (h *Handler) updateOrderStatus(c *gin.Context) {
 	orderID := c.Param("id")
-	
+
 	var req updateOrderStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -208,7 +208,7 @@ func (h *Handler) updateOrderStatus(c *gin.Context) {
 	}
 
 	payload := c.MustGet(middleware.AuthorizationPayloadKey).(*util.UserClaims)
-	
+
 	order, err := h.services.Order.GetOrder(c.Request.Context(), orderID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
@@ -225,7 +225,7 @@ func (h *Handler) updateOrderStatus(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "unauthorized"})
 		return
 	}
-	
+
 	var ownerIDStr string
 	if len(vendor.UserID.Bytes) == 16 {
 		ownerIDStr = util.UUIDString(vendor.UserID.Bytes)

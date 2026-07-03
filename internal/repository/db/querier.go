@@ -14,37 +14,37 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
-	
+
 	CreateVendor(ctx context.Context, arg CreateVendorParams) (Vendor, error)
 	GetVendorByID(ctx context.Context, id pgtype.UUID) (Vendor, error)
 	GetVendorByUserID(ctx context.Context, userID pgtype.UUID) (Vendor, error)
 	ListVendors(ctx context.Context) ([]Vendor, error)
 	UpdateVendorStatus(ctx context.Context, arg UpdateVendorStatusParams) (Vendor, error)
-	
+
 	CreateMenuItem(ctx context.Context, arg CreateMenuItemParams) (MenuItem, error)
 	GetMenuItemByID(ctx context.Context, id pgtype.UUID) (MenuItem, error)
 	ListMenuItemsByVendor(ctx context.Context, arg ListMenuItemsByVendorParams) ([]MenuItem, error)
 	UpdateMenuItemPrice(ctx context.Context, arg UpdateMenuItemPriceParams) (MenuItem, error)
 	UpdateMenuItemStock(ctx context.Context, arg UpdateMenuItemStockParams) (MenuItem, error)
 	DecrementMenuItemStock(ctx context.Context, arg DecrementMenuItemStockParams) (MenuItem, error)
-	
+
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	GetOrderByID(ctx context.Context, id pgtype.UUID) (Order, error)
 	GetOrderByIdempotencyKey(ctx context.Context, idempotencyKey string) (Order, error)
 	ListOrdersByCustomer(ctx context.Context, customerID pgtype.UUID) ([]Order, error)
 	ListOrdersByVendor(ctx context.Context, vendorID pgtype.UUID) ([]Order, error)
 	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error)
-	
+
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
 	ListOrderItemsByOrder(ctx context.Context, orderID pgtype.UUID) ([]OrderItem, error)
-	
+
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	DeleteExpiredTokens(ctx context.Context) error
 	GetRefreshToken(ctx context.Context, tokenHash string) (RefreshToken, error)
 	RevokeRefreshToken(ctx context.Context, tokenHash string) error
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
 	RevokeAllUserTokens(ctx context.Context, userID pgtype.UUID) error
-	
+
 	GetPlatformAnalytics(ctx context.Context) (GetPlatformAnalyticsRow, error)
 }
 

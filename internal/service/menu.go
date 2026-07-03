@@ -38,7 +38,7 @@ func (s *menuService) CreateMenuItem(ctx context.Context, arg db.CreateMenuItemP
 	}
 
 	// Invalidate the vendor's menu cache
-	
+
 	// Format of uuid string representation in go pgx is usually just hex, or we can format it properly.
 	// Since we know pgtype.UUID can be formatted, let's just use the string value if we can.
 	// Alternatively, we invalidate using the string representation passed elsewhere or parsed.

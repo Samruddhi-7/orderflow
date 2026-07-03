@@ -10,12 +10,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/Samruddhi-7/orderflow/internal/cache"
 	"github.com/Samruddhi-7/orderflow/internal/handler"
 	"github.com/Samruddhi-7/orderflow/internal/repository"
 	"github.com/Samruddhi-7/orderflow/internal/service"
 	"github.com/Samruddhi-7/orderflow/internal/util"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -67,7 +67,7 @@ func main() {
 	// 4. Initialize Layers (Repository -> Service -> Handler)
 	store := repository.NewStore(dbPool)
 	services := service.NewService(store, cacheService, jwtSecret)
-	
+
 	tokenMaker := util.NewTokenMaker(jwtSecret)
 	handlers := handler.NewHandler(services, tokenMaker)
 

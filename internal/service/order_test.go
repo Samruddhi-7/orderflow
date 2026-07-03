@@ -60,7 +60,7 @@ func TestOrderService_Integration(t *testing.T) {
 
 	// We will use a dummy cache (not testcontainers for redis to keep it simple, just skip redis lock path)
 	dummyCache, _ := cache.NewRedisCache("invalid_host:6379") // won't be used since UseRedisLock=false
-	
+
 	store := repository.NewStore(pool)
 	queries := db.New(pool)
 	orderService := service.NewOrderService(store, dummyCache)
@@ -130,7 +130,7 @@ func TestOrderService_Integration(t *testing.T) {
 			CustomerID: customerIDStr,
 			VendorID:   vendorIDStr,
 			Items: map[string]int32{
-				itemIDStr: 1, 
+				itemIDStr: 1,
 			},
 			IdempotencyKey: "test-key-2",
 			UseRedisLock:   false,

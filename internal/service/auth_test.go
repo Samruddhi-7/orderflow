@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/Samruddhi-7/orderflow/internal/repository/db"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type mockStore struct {
@@ -104,7 +104,7 @@ func (m *mockStore) RevokeRefreshToken(ctx context.Context, tokenHash string) er
 func (m *mockStore) RevokeAllUserTokens(ctx context.Context, userID pgtype.UUID) error {
 	uidStr := uuidToString(userID)
 	m.revokeAllCalled[uidStr]++
-	
+
 	// Mark all tokens belonging to user as revoked
 	for hash, token := range m.refreshTokens {
 		if uuidToString(token.UserID) == uidStr {

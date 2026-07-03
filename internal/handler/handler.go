@@ -3,10 +3,10 @@ package handler
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Samruddhi-7/orderflow/internal/middleware"
 	"github.com/Samruddhi-7/orderflow/internal/service"
 	"github.com/Samruddhi-7/orderflow/internal/util"
+	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
@@ -68,7 +68,7 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 				{
 					vendorOnly.POST("", h.createVendor)
 					vendorOnly.PATCH("/:vendor_id/status", h.updateVendorStatus)
-					
+
 					vendorOnly.POST("/:vendor_id/menu", h.createMenuItem)
 					vendorOnly.PATCH("/:vendor_id/menu/:item_id/price", h.updateMenuPrice)
 					vendorOnly.PATCH("/:vendor_id/menu/:item_id/stock", h.updateMenuStock)

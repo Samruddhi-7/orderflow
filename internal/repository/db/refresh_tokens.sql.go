@@ -104,4 +104,3 @@ func (q *Queries) RevokeAllUserTokens(ctx context.Context, userID pgtype.UUID) e
 	_, err := q.db.Exec(ctx, revokeAllUserTokens, userID)
 	return err
 }
-

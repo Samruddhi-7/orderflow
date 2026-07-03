@@ -18,45 +18,45 @@ type MenuItem struct {
 }
 
 type Order struct {
-	ID             pgtype.UUID      `db:"id" json:"id"`
-	CustomerID     pgtype.UUID      `db:"customer_id" json:"customer_id"`
-	VendorID       pgtype.UUID      `db:"vendor_id" json:"vendor_id"`
-	Status         string           `db:"status" json:"status"`
-	TotalAmount    pgtype.Numeric   `db:"total_amount" json:"total_amount"`
-	IdempotencyKey string           `db:"idempotency_key" json:"idempotency_key"`
+	ID             pgtype.UUID        `db:"id" json:"id"`
+	CustomerID     pgtype.UUID        `db:"customer_id" json:"customer_id"`
+	VendorID       pgtype.UUID        `db:"vendor_id" json:"vendor_id"`
+	Status         string             `db:"status" json:"status"`
+	TotalAmount    pgtype.Numeric     `db:"total_amount" json:"total_amount"`
+	IdempotencyKey string             `db:"idempotency_key" json:"idempotency_key"`
 	CreatedAt      pgtype.Timestamptz `db:"created_at" json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 }
 
 type OrderItem struct {
-	ID                pgtype.UUID    `db:"id" json:"id"`
-	OrderID           pgtype.UUID    `db:"order_id" json:"order_id"`
-	MenuItemID        pgtype.UUID    `db:"menu_item_id" json:"menu_item_id"`
-	Qty               int32          `db:"qty" json:"qty"`
+	ID               pgtype.UUID    `db:"id" json:"id"`
+	OrderID          pgtype.UUID    `db:"order_id" json:"order_id"`
+	MenuItemID       pgtype.UUID    `db:"menu_item_id" json:"menu_item_id"`
+	Qty              int32          `db:"qty" json:"qty"`
 	PriceAtOrderTime pgtype.Numeric `db:"price_at_order_time" json:"price_at_order_time"`
 }
 
 type RefreshToken struct {
-	ID        pgtype.UUID      `db:"id" json:"id"`
-	UserID    pgtype.UUID      `db:"user_id" json:"user_id"`
-	TokenHash string           `db:"token_hash" json:"token_hash"`
+	ID        pgtype.UUID        `db:"id" json:"id"`
+	UserID    pgtype.UUID        `db:"user_id" json:"user_id"`
+	TokenHash string             `db:"token_hash" json:"token_hash"`
 	ExpiresAt pgtype.Timestamptz `db:"expires_at" json:"expires_at"`
-	Revoked   bool             `db:"revoked" json:"revoked"`
+	Revoked   bool               `db:"revoked" json:"revoked"`
 }
 
 type User struct {
-	ID           pgtype.UUID      `db:"id" json:"id"`
-	Email        string           `db:"email" json:"email"`
-	PasswordHash string           `db:"password_hash" json:"password_hash"`
-	Role         string           `db:"role" json:"role"`
+	ID           pgtype.UUID        `db:"id" json:"id"`
+	Email        string             `db:"email" json:"email"`
+	PasswordHash string             `db:"password_hash" json:"password_hash"`
+	Role         string             `db:"role" json:"role"`
 	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"created_at"`
 }
 
 type Vendor struct {
-	ID        pgtype.UUID      `db:"id" json:"id"`
-	UserID    pgtype.UUID      `db:"user_id" json:"user_id"`
-	Name      string           `db:"name" json:"name"`
-	Address   string           `db:"address" json:"address"`
-	IsOpen    bool             `db:"is_open" json:"is_open"`
+	ID        pgtype.UUID        `db:"id" json:"id"`
+	UserID    pgtype.UUID        `db:"user_id" json:"user_id"`
+	Name      string             `db:"name" json:"name"`
+	Address   string             `db:"address" json:"address"`
+	IsOpen    bool               `db:"is_open" json:"is_open"`
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"created_at"`
 }

@@ -96,7 +96,7 @@ func TestOrderConcurrency(t *testing.T) {
 	if err := price.Scan("5.99"); err != nil {
 		t.Fatalf("failed to scan price: %v", err)
 	}
-	
+
 	menuItem, err := queries.CreateMenuItem(ctx, db.CreateMenuItemParams{
 		VendorID:    vendor.ID,
 		Name:        "Limited Edition Burger",
@@ -112,7 +112,7 @@ func TestOrderConcurrency(t *testing.T) {
 	if len(menuItem.ID.Bytes) == 16 {
 		itemIDStr = fmt.Sprintf("%x-%x-%x-%x-%x", menuItem.ID.Bytes[0:4], menuItem.ID.Bytes[4:6], menuItem.ID.Bytes[6:8], menuItem.ID.Bytes[8:10], menuItem.ID.Bytes[10:16])
 	}
-	
+
 	var vendorIDStr string
 	if len(vendor.ID.Bytes) == 16 {
 		vendorIDStr = fmt.Sprintf("%x-%x-%x-%x-%x", vendor.ID.Bytes[0:4], vendor.ID.Bytes[4:6], vendor.ID.Bytes[6:8], vendor.ID.Bytes[8:10], vendor.ID.Bytes[10:16])
@@ -193,7 +193,7 @@ func TestOrderConcurrency(t *testing.T) {
 	if finalItem.StockQty < 0 {
 		t.Errorf("Negative stock! Final stock is %d", finalItem.StockQty)
 	}
-	
+
 	expectedFinalStock := initialStock - successCount
 	if finalItem.StockQty != expectedFinalStock {
 		t.Errorf("Mismatch stock! Expected %d, got %d", expectedFinalStock, finalItem.StockQty)
