@@ -80,7 +80,7 @@ Phase F — Responsive polish, accessibility, motion pass
 - fix(web): propagate real types to all fetchApi call sites (`0eba44f`)
 - fix(web): replace setState-in-useEffect with lazy initializers (`fd40499`)
 - chore(web): remove dead code and unused imports (included in tasks 1–3 commits)
-- style(go): run gofmt -w on all Go source files (`04038b5`)
+- style(go): run gofmt -w on all Go source files (`d70c600`)
 
 - **Phase 7 (Environment & CORS)**:
   - Checked: \docker-compose up -d --build\ successfully spins up Postgres, Redis, and the Go API without any issues. The database schema migrations are correctly handled (auto-migrated or pre-existing in the volume/entrypoint) as all tables exist on boot.
