@@ -146,10 +146,14 @@ export function CartSlideover() {
               </div>
             )}
 
-            {/* UPI Payment Modal */}
-            {showUpiModal && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 backdrop-blur-sm">
-                <div className="bg-bg rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-6">
+          </div>
+        </div>
+      )}
+
+      {/* UPI Payment Modal */}
+      {showUpiModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/40 backdrop-blur-sm">
+          <div className="bg-bg rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 space-y-6 max-h-[90vh] overflow-y-auto">
                   <div className="text-center space-y-3">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10">
                       <QrCode className="w-8 h-8 text-accent" />
@@ -192,9 +196,6 @@ export function CartSlideover() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
     </>
   );
 }
