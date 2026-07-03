@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { getAuthToken, clearAuthToken, fetchApi } from "../lib/api";
 
 type User = {
@@ -41,7 +41,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     return null;
   });
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(false);
+  }, []);
 
   const login = (token: string, u: User) => {
     // Note: setAuthToken is now handled in api.ts or page.tsx 
