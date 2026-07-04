@@ -4,7 +4,7 @@
 > 
 > [**Live Demo**](#) | [**API Documentation**](#swagger-openapi-docs)
 
-![Go](https://img.shields.io/badge/Go-1.22-00ADD8?style=for-the-badge&logo=go)
+![Go](https://img.shields.io/badge/Go-1.23-00ADD8?style=for-the-badge&logo=go)
 ![Next.js](https://img.shields.io/badge/Next.js-14-000000?style=for-the-badge&logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis)
@@ -144,7 +144,7 @@ This endpoint uses standard Prometheus exposition format and can be scraped by a
 
 To ensure your code passes CI, a pre-commit hook has been added to `.git/hooks/pre-commit`. 
 
-If you bypass the hook, or want to run linting manually, make sure you use the exact version of `golangci-lint` used in CI (v1.59.1).
+If you bypass the hook, or want to run linting manually, make sure you use the exact version of `golangci-lint` used in CI (v1.64.2).
 Run the following command locally to verify zero errors before committing:
 ```bash
 golangci-lint run ./...
