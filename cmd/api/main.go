@@ -77,9 +77,9 @@ func main() {
 	tokenMaker := util.NewTokenMaker(jwtSecret)
 	handlers := handler.NewHandler(services, tokenMaker)
 
-	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
-	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost:3000"
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "http://localhost:3000"
 	}
 
 	// Rate limiter config for order creation (env- overridable, used in load testing)
@@ -96,7 +96,7 @@ func main() {
 		}
 	}
 
-	router := handlers.InitRoutes(allowedOrigin, orderRateLimit, orderBurst)
+	router := handlers.InitRoutes(allowedOrigins, orderRateLimit, orderBurst)
 
 	// 5. Start Server with Graceful Shutdown support
 	srv := &http.Server{

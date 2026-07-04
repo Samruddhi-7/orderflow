@@ -22,10 +22,10 @@ func NewHandler(services *service.Service, tokenMaker *util.TokenMaker) *Handler
 	}
 }
 
-func (h *Handler) InitRoutes(allowedOrigin string, orderRateLimit float64, orderBurst int) *gin.Engine {
+func (h *Handler) InitRoutes(allowedOrigins string, orderRateLimit float64, orderBurst int) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
-	router.Use(middleware.CORSMiddleware(allowedOrigin))
+	router.Use(middleware.CORSMiddleware(allowedOrigins))
 	router.Use(middleware.MetricsMiddleware())
 
 	// Expose Prometheus metrics on an unauthenticated route.

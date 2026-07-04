@@ -86,10 +86,25 @@ func RequireRole(allowedRoles ...string) gin.HandlerFunc {
 	}
 }
 
-// CORSMiddleware sets explicit CORS policies (no wildcards)
-func CORSMiddleware(allowedOrigin string) gin.HandlerFunc {
+// CORSMiddleware sets explicit CORS policies (no wildcards).
+// allowedOrigins is a comma-separated list of origins (e.g. "http://localhost:3000,https://orderflow.vercel.app").
+// The request's Origin header is matched against the list; if matched, it is echoed back.
+// If the list contains "*" or the origin is not present, the first origin is used as a fallback.
+func CORSMiddleware(allowedOrigins string) gin.HandlerFunc {
+	origins := strings.Split(allowedOrigins, ",")
+	for i := range origins {
+		origins[i] = strings.TrimSpace(origins[i])
+	}
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+		origin := c.Request.Header.Get("Origin")
+		allowed := origins[0]
+		for _, o := range origins {
+			if o == origin || o == "*" {
+				allowed = origin
+				break
+			}
+		}
+		c.Writer.Header().Set("Access-Control-Allow-Origin", allowed)
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Idempotency-Key")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")

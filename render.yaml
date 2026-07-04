@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: orderflow-api
+    runtime: image
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_SOURCE
+        fromDatabase:
+          name: orderflow-db
+          property: connectionString
+      - key: REDIS_ADDR
+        fromService:
+          type: redis
+          name: orderflow-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:3000,https://orderflow.vercel.app
+      - key: ORDER_RATE_LIMIT_RATE
+        value: "5000"
+      - key: ORDER_RATE_LIMIT_BURST
+        value: "10000"
+
+databases:
+  - name: orderflow-db
+    plan: free
+    region: ohio
+    postgresMajorVersion: 16
+
+redis:
+  - name: orderflow-redis
+    plan: free
+    maxmemoryPolicy: noeviction
