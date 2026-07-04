@@ -107,6 +107,26 @@ go test -v ./...
 
 ---
 
+## ⚡ Performance & Load Testing
+
+A k6 load test simulating 100 concurrent virtual users (VUs) placing orders against the same menu item for 30 seconds validated that the atomic-DB-update overselling protection works correctly under real contention — not just in a controlled integration test.
+
+| Metric | Value |
+|--------|-------|
+| Requests/sec | 98.7 |
+| p50 latency | 952 ms |
+| p95 latency | 1,323 ms |
+| p99 latency | 2,141 ms |
+| Error rate | 0% |
+| Total orders created | 3,078 |
+| Stock oversold? | **No** — final stock (6,922) = initial (10,000) − 3,078 |
+
+Stock consistency was verified by querying `menu_items.stock_qty` after the run: every decrement was accounted for and no negative stock occurred. See [`load-tests/README.md`](./load-tests/README.md) for the full scenario, command, and interpretation.
+
+> **Caveat**: Tested against a local PostgreSQL instance with the rate limiter disabled. Production numbers under real network conditions, TLS termination, and concurrent multi-item requests would differ.
+
+---
+
 ## 📊 Observability (Prometheus Metrics)
 
 OrderFlow exposes a Prometheus-compatible `/metrics` endpoint with both HTTP-level and business-level instrumentation:
