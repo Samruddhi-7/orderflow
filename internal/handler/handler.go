@@ -21,7 +21,7 @@ func NewHandler(services *service.Service, tokenMaker *util.TokenMaker) *Handler
 	}
 }
 
-func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
+func (h *Handler) InitRoutes(allowedOrigin string, orderRateLimit float64, orderBurst int) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware.CORSMiddleware(allowedOrigin))
@@ -29,8 +29,8 @@ func (h *Handler) InitRoutes(allowedOrigin string) *gin.Engine {
 	// Rate limiter for Auth endpoints (e.g., 5 requests per second limit, burst of 10)
 	authRateLimiter := middleware.NewRateLimiter(5.0, 10.0)
 
-	// Rate limiter for Orders (token bucket: 2 requests per second, capacity 5)
-	orderRateLimiter := middleware.NewOrderRateLimiter(2.0, 5)
+	// Rate limiter for Orders (token bucket: configurable via env, default 2 req/s burst 5)
+	orderRateLimiter := middleware.NewOrderRateLimiter(orderRateLimit, orderBurst)
 
 	// Health check
 	router.GET("/health", func(c *gin.Context) {

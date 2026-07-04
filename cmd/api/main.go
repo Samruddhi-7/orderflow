@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -81,7 +82,21 @@ func main() {
 		allowedOrigin = "http://localhost:3000"
 	}
 
-	router := handlers.InitRoutes(allowedOrigin)
+	// Rate limiter config for order creation (env- overridable, used in load testing)
+	orderRateLimit := 2.0
+	if v := os.Getenv("ORDER_RATE_LIMIT_RATE"); v != "" {
+		if parsed, err := strconv.ParseFloat(v, 64); err == nil {
+			orderRateLimit = parsed
+		}
+	}
+	orderBurst := 5
+	if v := os.Getenv("ORDER_RATE_LIMIT_BURST"); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil {
+			orderBurst = parsed
+		}
+	}
+
+	router := handlers.InitRoutes(allowedOrigin, orderRateLimit, orderBurst)
 
 	// 5. Start Server with Graceful Shutdown support
 	srv := &http.Server{
