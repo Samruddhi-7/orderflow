@@ -7,6 +7,7 @@ import (
 	"github.com/Samruddhi-7/orderflow/internal/service"
 	"github.com/Samruddhi-7/orderflow/internal/util"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Handler struct {
@@ -25,6 +26,12 @@ func (h *Handler) InitRoutes(allowedOrigin string, orderRateLimit float64, order
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware.CORSMiddleware(allowedOrigin))
+	router.Use(middleware.MetricsMiddleware())
+
+	// Expose Prometheus metrics on an unauthenticated route.
+	// In a production deployment this would typically be firewalled or served on
+	// a separate internal port rather than exposed publicly.
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// Rate limiter for Auth endpoints (e.g., 5 requests per second limit, burst of 10)
 	authRateLimiter := middleware.NewRateLimiter(5.0, 10.0)

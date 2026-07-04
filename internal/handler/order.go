@@ -3,8 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 
+	"github.com/Samruddhi-7/orderflow/internal/metrics"
 	"github.com/Samruddhi-7/orderflow/internal/middleware"
 	"github.com/Samruddhi-7/orderflow/internal/service"
 	"github.com/Samruddhi-7/orderflow/internal/util"
@@ -75,12 +77,14 @@ type createOrderRequest struct {
 func (h *Handler) createOrder(c *gin.Context) {
 	var req createOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		metrics.OrderCreationErrorsTotal.WithLabelValues("validation_failed").Inc()
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	idempotencyKey := c.GetHeader("Idempotency-Key")
 	if idempotencyKey == "" {
+		metrics.OrderCreationErrorsTotal.WithLabelValues("validation_failed").Inc()
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Idempotency-Key header is required"})
 		return
 	}
@@ -102,10 +106,19 @@ func (h *Handler) createOrder(c *gin.Context) {
 
 	order, err := h.services.Order.CreateOrder(c.Request.Context(), orderReq)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "not enough stock") || strings.Contains(errMsg, "not available") {
+			metrics.OrderCreationErrorsTotal.WithLabelValues("insufficient_stock").Inc()
+		} else if strings.Contains(errMsg, "could not acquire lock") {
+			metrics.OrderCreationErrorsTotal.WithLabelValues("lock_failed").Inc()
+		} else {
+			metrics.OrderCreationErrorsTotal.WithLabelValues("db_error").Inc()
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})
 		return
 	}
 
+	metrics.OrdersCreatedTotal.Inc()
 	c.JSON(http.StatusCreated, order)
 }
 

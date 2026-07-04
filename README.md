@@ -107,6 +107,39 @@ go test -v ./...
 
 ---
 
+## 📊 Observability (Prometheus Metrics)
+
+OrderFlow exposes a Prometheus-compatible `/metrics` endpoint with both HTTP-level and business-level instrumentation:
+
+- **`http_requests_total`** — request count partitioned by method, route path, and status code.
+- **`http_request_duration_seconds`** — latency histogram (enables p50/p95/p99 derivation from live data).
+- **`orders_created_total`** — counter of successfully placed orders.
+- **`order_creation_errors_total{reason="..."}`** — failed order attempts by reason (`validation_failed`, `insufficient_stock`, `lock_failed`, `db_error`).
+- **`active_goroutines`** — gauge sampled on scrape, tied to the project's concurrency story.
+
+### View locally
+
+```bash
+curl http://localhost:8080/metrics | grep -E "(orders_created|http_requests_total|active_goroutines)"
+```
+
+Example output:
+
+```
+# HELP active_goroutines Current number of active goroutines (sampled on scrape).
+# TYPE active_goroutines gauge
+active_goroutines 10
+# HELP http_requests_total Total number of HTTP requests handled...
+# TYPE http_requests_total counter
+http_requests_total{method="POST",path="/api/v1/orders",status_code="201"} 1
+orders_created_total 1
+order_creation_errors_total{reason="validation_failed"} 2
+```
+
+This endpoint uses standard Prometheus exposition format and can be scraped by a Prometheus server and visualised in Grafana in a full production setup.
+
+---
+
 ## 🛠 Before you commit
 
 To ensure your code passes CI, a pre-commit hook has been added to `.git/hooks/pre-commit`. 
