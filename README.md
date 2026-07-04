@@ -1,5 +1,8 @@
 # OrderFlow 🍔
 
+[![CI](https://github.com/Samruddhi-7/orderflow/actions/workflows/ci.yml/badge.svg)](https://github.com/Samruddhi-7/orderflow/actions/workflows/ci.yml)
+![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
+
 > A scalable, multi-vendor food ordering platform built for high concurrency.
 > 
 > [**Live Demo**](#) | [**API Documentation**](#swagger-openapi-docs)
@@ -104,6 +107,48 @@ Make sure Docker is running (required for `testcontainers-go`), then execute:
 ```bash
 go test -v ./...
 ```
+
+### 📊 Real Test Output
+
+Actual output from a local run (`go test -v ./...` with Docker Desktop):
+
+```
+?   	github.com/Samruddhi-7/orderflow/cmd/api	[no test files]
+?   	github.com/Samruddhi-7/orderflow/internal/cache	[no test files]
+?   	github.com/Samruddhi-7/orderflow/internal/handler	[no test files]
+?   	github.com/Samruddhi-7/orderflow/internal/metrics	[no test files]
+=== RUN   TestRequireRole
+=== RUN   TestRequireRole/allow_admin_to_access_admin_route
+=== RUN   TestRequireRole/allow_vendor_to_access_vendor_route
+=== RUN   TestRequireRole/deny_customer_to_access_vendor_route
+--- PASS: TestRequireRole (0.00s)
+    --- PASS: TestRequireRole/allow_admin_to_access_admin_route (0.00s)
+    --- PASS: TestRequireRole/allow_vendor_to_access_vendor_route (0.00s)
+    --- PASS: TestRequireRole/deny_customer_to_access_vendor_route (0.00s)
+PASS
+ok  	github.com/Samruddhi-7/orderflow/internal/middleware	(cached)
+?   	github.com/Samruddhi-7/orderflow/internal/repository	[no test files]
+?   	github.com/Samruddhi-7/orderflow/internal/repository/db	[no test files]
+=== RUN   TestRegister
+--- PASS: TestRegister (0.13s)
+=== RUN   TestLoginAndRefreshSuccess
+--- PASS: TestLoginAndRefreshSuccess (0.18s)
+=== RUN   TestRefreshTokenReuseDetection
+--- PASS: TestRefreshTokenReuseDetection (0.16s)
+=== RUN   TestOrderConcurrency
+    order_concurrency_test.go:147: Starting 100 concurrent requests for an item with stock 10 (Use Redis Lock: false)
+    order_concurrency_test.go:179: Successes: 10, Failures: 90
+    order_concurrency_test.go:191: Final Stock Qty: 0
+--- PASS: TestOrderConcurrency (6.32s)
+=== RUN   TestOrderService_Integration
+--- PASS: TestOrderService_Integration (9.53s)
+    --- PASS: TestOrderService_Integration/CreateOrder_CalculatesTotal (0.03s)
+    --- PASS: TestOrderService_Integration/CreateOrder_Idempotency (0.02s)
+PASS
+ok  	github.com/Samruddhi-7/orderflow/internal/service	21.828s
+```
+
+**Interpretation**: 100 concurrent goroutines attempted to purchase from a stock of 10; exactly 10 succeeded, 90 were correctly rejected, and the final stock reached 0 — confirming zero oversold units under contention.
 
 ---
 

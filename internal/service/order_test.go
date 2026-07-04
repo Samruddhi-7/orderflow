@@ -32,7 +32,7 @@ func TestOrderService_Integration(t *testing.T) {
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
 				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second)),
+				WithStartupTimeout(15*time.Second)),
 	)
 	if err != nil {
 		t.Fatalf("Failed to start pg container: %v", err)
